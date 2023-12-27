@@ -87,10 +87,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 self?.showSearchView()
             }
             
-            if event.modifierFlags.contains([.command, .shift]) && event.keyCode == 0 {
-                LLM.shared.ask(query: "how's it going?")
-            }
-            
             if (self?.searchViewWindow?.isVisible ?? false) && event.keyCode == 53 {
                 self?.closeSearchView()
             }

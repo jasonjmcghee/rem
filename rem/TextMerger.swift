@@ -64,10 +64,6 @@ class TextMerger {
         return text.components(separatedBy: "\n")
     }
 
-    private func calculateSimilarity(seg1: String, seg2: String) -> Double {
-        return fuzzyRatio(seg1, seg2)
-    }
-
     private func mergeSegments(seg1: String, seg2: String) -> String {
         return seg1.count > seg2.count ? seg1 : seg2
     }
