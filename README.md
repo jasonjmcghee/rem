@@ -2,6 +2,10 @@
 
 🧠 Remember everything.
 
+<a href="https://www.loom.com/share/091a48b318f04f22bdada62716298948">
+  <img style="max-width:300px;" src="https://cdn.loom.com/sessions/thumbnails/091a48b318f04f22bdada62716298948-with-play.gif">
+</a>
+
 An open source approach to locally record everything you view on your Apple Silicon computer.
 
 _Note: Relies on Apple Silicon, and configured to only produce Apple Silicon builds._
