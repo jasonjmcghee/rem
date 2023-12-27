@@ -90,6 +90,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             if (self?.searchViewWindow?.isVisible ?? false) && event.keyCode == 53 {
                 self?.closeSearchView()
             }
+            
+            if (self?.timelineViewWindow?.isVisible ?? false) && event.keyCode == 53 {
+                self?.closeTimelineView()
+            }
             return event
         }
         
@@ -443,6 +447,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func closeSearchView() {
         searchViewWindow?.isReleasedWhenClosed = false
         searchViewWindow?.close()
+    }
+    
+    func closeTimelineView() {
+        timelineViewWindow?.isReleasedWhenClosed = false
+        timelineViewWindow?.close()
     }
     
     @objc func showSearchView() {
