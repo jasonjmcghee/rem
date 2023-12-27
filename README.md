@@ -25,6 +25,7 @@ complete novice at Swift.
 - Click "Start Remembering"
 - Grant it access to "Screen Recording" i.e. take screenshots every 2 seconds
 - Click "Open timeline" or "Cmd + Scroll Up" to open the timeline view
+    - Scroll left or right to move in time
 - Click "Search" to open the search view
     - Search your history and click on a thumbnail to go there in the timeline
 - In timeline, give Live Text a second and then you can select text
