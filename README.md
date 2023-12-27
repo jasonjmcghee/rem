@@ -19,6 +19,18 @@ This is 100% local. Please, read the code yourself.
 I wrote this in a couple days over the holidays, and if there's one takeaway, it's that I'm a
 complete novice at Swift.
 
+## Getting Started
+- Launch the app
+- Click the brain
+- Click "Start Remembering"
+- Grant it access to "Screen Recording" i.e. take screenshots every 2 seconds
+- Click "Open timeline" or "Cmd + Scroll Up" to open the timeline view
+- Click "Search" to open the search view
+    - Search your history and click on a thumbnail to go there in the timeline
+- In timeline, give Live Text a second and then you can select text
+- Click "Copy Recent Context" to grab a prompt for interacting with an LLM with what you've seen recently as context
+- Click "Purge All Data" to delete everything (useful if something breaks)
+
 ## Current supports:
 - Going back in time (full-screen scrubber of everything you've viewed)
 - Copy text from back in time
