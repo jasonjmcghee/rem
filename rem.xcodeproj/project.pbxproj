@@ -9,11 +9,24 @@
 /* Begin PBXBuildFile section */
 		961C95DA2B2E19B30093F228 /* remApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961C95D92B2E19B30093F228 /* remApp.swift */; };
 		961C95DC2B2E19B30093F228 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961C95DB2B2E19B30093F228 /* ContentView.swift */; };
-		961C95DE2B2E19B40093F228 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 961C95DD2B2E19B40093F228 /* Assets.xcassets */; };
 		961C95E12B2E19B40093F228 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 961C95E02B2E19B40093F228 /* Preview Assets.xcassets */; };
 		961C95EC2B2E19B40093F228 /* remTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961C95EB2B2E19B40093F228 /* remTests.swift */; };
 		961C95F62B2E19B40093F228 /* remUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961C95F52B2E19B40093F228 /* remUITests.swift */; };
 		961C95F82B2E19B40093F228 /* remUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961C95F72B2E19B40093F228 /* remUITestsLaunchTests.swift */; };
+		961C960F2B2E73840093F228 /* ffmpeg in Resources */ = {isa = PBXBuildFile; fileRef = 961C960D2B2E73840093F228 /* ffmpeg */; };
+		961C96102B2E73B00093F228 /* ffmpeg in CopyFiles */ = {isa = PBXBuildFile; fileRef = 961C960D2B2E73840093F228 /* ffmpeg */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		961C96132B2EB7DB0093F228 /* TimelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961C96122B2EB7DB0093F228 /* TimelineView.swift */; };
+		961C96152B2EBEE50093F228 /* DB.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961C96142B2EBEE50093F228 /* DB.swift */; };
+		969F3EFF2B3A8C4D0085787B /* HotKey in Frameworks */ = {isa = PBXBuildFile; productRef = 969F3EFE2B3A8C4D0085787B /* HotKey */; };
+		969F3F042B3B70560085787B /* SQLite.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 96E66BBF2B2F5745006E1E97 /* SQLite.framework */; };
+		969F3F052B3B70560085787B /* SQLite.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 96E66BBF2B2F5745006E1E97 /* SQLite.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		969F3F082B3B7C7C0085787B /* RemFileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 969F3F072B3B7C7C0085787B /* RemFileManager.swift */; };
+		969F3F0B2B3CB2110085787B /* Field.swift in Sources */ = {isa = PBXBuildFile; fileRef = 969F3F0A2B3CB2110085787B /* Field.swift */; };
+		969F3F0D2B3CCEC30085787B /* Ask.swift in Sources */ = {isa = PBXBuildFile; fileRef = 969F3F0C2B3CCEC30085787B /* Ask.swift */; };
+		96B0DA382B3A02530030E8AE /* ClipboardManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96B0DA372B3A02530030E8AE /* ClipboardManager.swift */; };
+		96B0DA3A2B3A08280030E8AE /* TextMerger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96B0DA392B3A08280030E8AE /* TextMerger.swift */; };
+		96B0DA3D2B3A87110030E8AE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 961C95DD2B2E19B40093F228 /* Assets.xcassets */; };
+		96F062182B35111D00695621 /* Search.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96F062172B35111D00695621 /* Search.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -31,7 +44,129 @@
 			remoteGlobalIDString = 961C95D52B2E19B30093F228;
 			remoteInfo = rem;
 		};
+		96E66BBE2B2F5745006E1E97 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 96E66BB42B2F5745006E1E97 /* SQLite.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = EE247AD31C3F04ED00AE3E12;
+			remoteInfo = "SQLite iOS";
+		};
+		96E66BC02B2F5745006E1E97 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 96E66BB42B2F5745006E1E97 /* SQLite.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = EE247ADD1C3F04ED00AE3E12;
+			remoteInfo = "SQLiteTests iOS";
+		};
+		96E66BC22B2F5745006E1E97 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 96E66BB42B2F5745006E1E97 /* SQLite.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = EE247B3C1C3F3ED000AE3E12;
+			remoteInfo = "SQLite Mac";
+		};
+		96E66BC42B2F5745006E1E97 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 96E66BB42B2F5745006E1E97 /* SQLite.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = EE247B451C3F3ED000AE3E12;
+			remoteInfo = "SQLiteTests Mac";
+		};
+		96E66BC62B2F5745006E1E97 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 96E66BB42B2F5745006E1E97 /* SQLite.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 03A65E5A1C6BB0F50062603F;
+			remoteInfo = "SQLite tvOS";
+		};
+		96E66BC82B2F5745006E1E97 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 96E66BB42B2F5745006E1E97 /* SQLite.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 03A65E631C6BB0F60062603F;
+			remoteInfo = "SQLiteTests tvOS";
+		};
+		96E66BCA2B2F5745006E1E97 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 96E66BB42B2F5745006E1E97 /* SQLite.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = A121AC451CA35C79005A31D1;
+			remoteInfo = "SQLite watchOS";
+		};
+		96E66BD62B2F574D006E1E97 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 96E66BCC2B2F574D006E1E97 /* SQLite.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = EE247AD31C3F04ED00AE3E12;
+			remoteInfo = "SQLite iOS";
+		};
+		96E66BD82B2F574D006E1E97 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 96E66BCC2B2F574D006E1E97 /* SQLite.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = EE247ADD1C3F04ED00AE3E12;
+			remoteInfo = "SQLiteTests iOS";
+		};
+		96E66BDA2B2F574D006E1E97 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 96E66BCC2B2F574D006E1E97 /* SQLite.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = EE247B3C1C3F3ED000AE3E12;
+			remoteInfo = "SQLite Mac";
+		};
+		96E66BDC2B2F574D006E1E97 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 96E66BCC2B2F574D006E1E97 /* SQLite.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = EE247B451C3F3ED000AE3E12;
+			remoteInfo = "SQLiteTests Mac";
+		};
+		96E66BDE2B2F574D006E1E97 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 96E66BCC2B2F574D006E1E97 /* SQLite.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 03A65E5A1C6BB0F50062603F;
+			remoteInfo = "SQLite tvOS";
+		};
+		96E66BE02B2F574D006E1E97 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 96E66BCC2B2F574D006E1E97 /* SQLite.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 03A65E631C6BB0F60062603F;
+			remoteInfo = "SQLiteTests tvOS";
+		};
+		96E66BE22B2F574D006E1E97 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 96E66BCC2B2F574D006E1E97 /* SQLite.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = A121AC451CA35C79005A31D1;
+			remoteInfo = "SQLite watchOS";
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		961C96092B2E71AB0093F228 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 6;
+			files = (
+				961C96102B2E73B00093F228 /* ffmpeg in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		969F3F062B3B70570085787B /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				969F3F052B3B70560085787B /* SQLite.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		961C95D62B2E19B30093F228 /* rem.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = rem.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -45,6 +180,18 @@
 		961C95F12B2E19B40093F228 /* remUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = remUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		961C95F52B2E19B40093F228 /* remUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = remUITests.swift; sourceTree = "<group>"; };
 		961C95F72B2E19B40093F228 /* remUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = remUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		961C960D2B2E73840093F228 /* ffmpeg */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = ffmpeg; sourceTree = "<group>"; };
+		961C96122B2EB7DB0093F228 /* TimelineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimelineView.swift; sourceTree = "<group>"; };
+		961C96142B2EBEE50093F228 /* DB.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DB.swift; sourceTree = "<group>"; };
+		969F3F072B3B7C7C0085787B /* RemFileManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemFileManager.swift; sourceTree = "<group>"; };
+		969F3F092B3B7F760085787B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		969F3F0A2B3CB2110085787B /* Field.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Field.swift; sourceTree = "<group>"; };
+		969F3F0C2B3CCEC30085787B /* Ask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Ask.swift; sourceTree = "<group>"; };
+		96B0DA372B3A02530030E8AE /* ClipboardManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardManager.swift; sourceTree = "<group>"; };
+		96B0DA392B3A08280030E8AE /* TextMerger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextMerger.swift; sourceTree = "<group>"; };
+		96E66BB42B2F5745006E1E97 /* SQLite.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SQLite.xcodeproj; path = "../../Downloads/SQLite.swift-master/SQLite.xcodeproj"; sourceTree = "<group>"; };
+		96E66BCC2B2F574D006E1E97 /* SQLite.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SQLite.xcodeproj; path = "../../../Downloads/SQLite.swift-master/SQLite.xcodeproj"; sourceTree = "<group>"; };
+		96F062172B35111D00695621 /* Search.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Search.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -52,6 +199,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				969F3F042B3B70560085787B /* SQLite.framework in Frameworks */,
+				969F3EFF2B3A8C4D0085787B /* HotKey in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -75,10 +224,13 @@
 		961C95CD2B2E19B30093F228 = {
 			isa = PBXGroup;
 			children = (
+				96E66BB42B2F5745006E1E97 /* SQLite.xcodeproj */,
+				961C96042B2E70110093F228 /* Resources */,
 				961C95D82B2E19B30093F228 /* rem */,
 				961C95EA2B2E19B40093F228 /* remTests */,
 				961C95F42B2E19B40093F228 /* remUITests */,
 				961C95D72B2E19B30093F228 /* Products */,
+				96E66BE42B2F5781006E1E97 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -95,11 +247,20 @@
 		961C95D82B2E19B30093F228 /* rem */ = {
 			isa = PBXGroup;
 			children = (
+				969F3F092B3B7F760085787B /* Info.plist */,
+				961C96122B2EB7DB0093F228 /* TimelineView.swift */,
 				961C95D92B2E19B30093F228 /* remApp.swift */,
 				961C95DB2B2E19B30093F228 /* ContentView.swift */,
 				961C95DD2B2E19B40093F228 /* Assets.xcassets */,
 				961C95E22B2E19B40093F228 /* rem.entitlements */,
 				961C95DF2B2E19B40093F228 /* Preview Content */,
+				961C96142B2EBEE50093F228 /* DB.swift */,
+				96F062172B35111D00695621 /* Search.swift */,
+				96B0DA372B3A02530030E8AE /* ClipboardManager.swift */,
+				96B0DA392B3A08280030E8AE /* TextMerger.swift */,
+				969F3F072B3B7C7C0085787B /* RemFileManager.swift */,
+				969F3F0A2B3CB2110085787B /* Field.swift */,
+				969F3F0C2B3CCEC30085787B /* Ask.swift */,
 			);
 			path = rem;
 			sourceTree = "<group>";
@@ -123,10 +284,54 @@
 		961C95F42B2E19B40093F228 /* remUITests */ = {
 			isa = PBXGroup;
 			children = (
+				96E66BCC2B2F574D006E1E97 /* SQLite.xcodeproj */,
 				961C95F52B2E19B40093F228 /* remUITests.swift */,
 				961C95F72B2E19B40093F228 /* remUITestsLaunchTests.swift */,
 			);
 			path = remUITests;
+			sourceTree = "<group>";
+		};
+		961C96042B2E70110093F228 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				961C960D2B2E73840093F228 /* ffmpeg */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		96E66BB52B2F5745006E1E97 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				96E66BBF2B2F5745006E1E97 /* SQLite.framework */,
+				96E66BC12B2F5745006E1E97 /* SQLiteTests iOS.xctest */,
+				96E66BC32B2F5745006E1E97 /* SQLite.framework */,
+				96E66BC52B2F5745006E1E97 /* SQLiteTests Mac.xctest */,
+				96E66BC72B2F5745006E1E97 /* SQLite.framework */,
+				96E66BC92B2F5745006E1E97 /* SQLiteTests tvOS.xctest */,
+				96E66BCB2B2F5745006E1E97 /* SQLite.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		96E66BCD2B2F574D006E1E97 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				96E66BD72B2F574D006E1E97 /* SQLite.framework */,
+				96E66BD92B2F574D006E1E97 /* SQLiteTests iOS.xctest */,
+				96E66BDB2B2F574D006E1E97 /* SQLite.framework */,
+				96E66BDD2B2F574D006E1E97 /* SQLiteTests Mac.xctest */,
+				96E66BDF2B2F574D006E1E97 /* SQLite.framework */,
+				96E66BE12B2F574D006E1E97 /* SQLiteTests tvOS.xctest */,
+				96E66BE32B2F574D006E1E97 /* SQLite.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		96E66BE42B2F5781006E1E97 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -139,12 +344,17 @@
 				961C95D22B2E19B30093F228 /* Sources */,
 				961C95D32B2E19B30093F228 /* Frameworks */,
 				961C95D42B2E19B30093F228 /* Resources */,
+				961C96092B2E71AB0093F228 /* CopyFiles */,
+				969F3F062B3B70570085787B /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			name = rem;
+			packageProductDependencies = (
+				969F3EFE2B3A8C4D0085787B /* HotKey */,
+			);
 			productName = rem;
 			productReference = 961C95D62B2E19B30093F228 /* rem.app */;
 			productType = "com.apple.product-type.application";
@@ -217,8 +427,21 @@
 				Base,
 			);
 			mainGroup = 961C95CD2B2E19B30093F228;
+			packageReferences = (
+				969F3EFD2B3A8C4D0085787B /* XCRemoteSwiftPackageReference "HotKey" */,
+			);
 			productRefGroup = 961C95D72B2E19B30093F228 /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 96E66BB52B2F5745006E1E97 /* Products */;
+					ProjectRef = 96E66BB42B2F5745006E1E97 /* SQLite.xcodeproj */;
+				},
+				{
+					ProductGroup = 96E66BCD2B2F574D006E1E97 /* Products */;
+					ProjectRef = 96E66BCC2B2F574D006E1E97 /* SQLite.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				961C95D52B2E19B30093F228 /* rem */,
@@ -228,13 +451,115 @@
 		};
 /* End PBXProject section */
 
+/* Begin PBXReferenceProxy section */
+		96E66BBF2B2F5745006E1E97 /* SQLite.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = SQLite.framework;
+			remoteRef = 96E66BBE2B2F5745006E1E97 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		96E66BC12B2F5745006E1E97 /* SQLiteTests iOS.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = "SQLiteTests iOS.xctest";
+			remoteRef = 96E66BC02B2F5745006E1E97 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		96E66BC32B2F5745006E1E97 /* SQLite.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = SQLite.framework;
+			remoteRef = 96E66BC22B2F5745006E1E97 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		96E66BC52B2F5745006E1E97 /* SQLiteTests Mac.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = "SQLiteTests Mac.xctest";
+			remoteRef = 96E66BC42B2F5745006E1E97 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		96E66BC72B2F5745006E1E97 /* SQLite.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = SQLite.framework;
+			remoteRef = 96E66BC62B2F5745006E1E97 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		96E66BC92B2F5745006E1E97 /* SQLiteTests tvOS.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = "SQLiteTests tvOS.xctest";
+			remoteRef = 96E66BC82B2F5745006E1E97 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		96E66BCB2B2F5745006E1E97 /* SQLite.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = SQLite.framework;
+			remoteRef = 96E66BCA2B2F5745006E1E97 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		96E66BD72B2F574D006E1E97 /* SQLite.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = SQLite.framework;
+			remoteRef = 96E66BD62B2F574D006E1E97 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		96E66BD92B2F574D006E1E97 /* SQLiteTests iOS.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = "SQLiteTests iOS.xctest";
+			remoteRef = 96E66BD82B2F574D006E1E97 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		96E66BDB2B2F574D006E1E97 /* SQLite.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = SQLite.framework;
+			remoteRef = 96E66BDA2B2F574D006E1E97 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		96E66BDD2B2F574D006E1E97 /* SQLiteTests Mac.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = "SQLiteTests Mac.xctest";
+			remoteRef = 96E66BDC2B2F574D006E1E97 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		96E66BDF2B2F574D006E1E97 /* SQLite.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = SQLite.framework;
+			remoteRef = 96E66BDE2B2F574D006E1E97 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		96E66BE12B2F574D006E1E97 /* SQLiteTests tvOS.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = "SQLiteTests tvOS.xctest";
+			remoteRef = 96E66BE02B2F574D006E1E97 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		96E66BE32B2F574D006E1E97 /* SQLite.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = SQLite.framework;
+			remoteRef = 96E66BE22B2F574D006E1E97 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
+
 /* Begin PBXResourcesBuildPhase section */
 		961C95D42B2E19B30093F228 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				961C95E12B2E19B40093F228 /* Preview Assets.xcassets in Resources */,
-				961C95DE2B2E19B40093F228 /* Assets.xcassets in Resources */,
+				96B0DA3D2B3A87110030E8AE /* Assets.xcassets in Resources */,
+				961C960F2B2E73840093F228 /* ffmpeg in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -260,7 +585,15 @@
 			buildActionMask = 2147483647;
 			files = (
 				961C95DC2B2E19B30093F228 /* ContentView.swift in Sources */,
+				961C96152B2EBEE50093F228 /* DB.swift in Sources */,
+				96B0DA3A2B3A08280030E8AE /* TextMerger.swift in Sources */,
+				96F062182B35111D00695621 /* Search.swift in Sources */,
+				961C96132B2EB7DB0093F228 /* TimelineView.swift in Sources */,
+				969F3F082B3B7C7C0085787B /* RemFileManager.swift in Sources */,
 				961C95DA2B2E19B30093F228 /* remApp.swift in Sources */,
+				96B0DA382B3A02530030E8AE /* ClipboardManager.swift in Sources */,
+				969F3F0B2B3CB2110085787B /* Field.swift in Sources */,
+				969F3F0D2B3CCEC30085787B /* Ask.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -301,6 +634,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -329,10 +663,13 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				EMBED_ASSET_PACKS_IN_PRODUCT_BUNDLE = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				EXCLUDED_ARCHS = "";
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -347,10 +684,10 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
-				ONLY_ACTIVE_ARCH = YES;
+				ONLY_ACTIVE_ARCH = NO;
 				SDKROOT = macosx;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -361,6 +698,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -389,10 +727,14 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				EMBED_ASSET_PACKS_IN_PRODUCT_BUNDLE = YES;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				EXCLUDED_ARCHS = "";
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -401,9 +743,10 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = NO;
 				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
@@ -413,25 +756,35 @@
 		961C95FC2B2E19B40093F228 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = arm64;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = rem/rem.entitlements;
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_IDENTITY = "";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "";
+				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"rem/Preview Content\"";
-				DEVELOPMENT_TEAM = XK2A33Z623;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = XK2A33Z623;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = rem/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = today.jason.rem;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 			};
@@ -440,25 +793,35 @@
 		961C95FD2B2E19B40093F228 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = arm64;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = rem/rem.entitlements;
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_IDENTITY = "";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "";
+				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"rem/Preview Content\"";
-				DEVELOPMENT_TEAM = XK2A33Z623;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = XK2A33Z623;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = rem/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = today.jason.rem;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 			};
@@ -469,11 +832,12 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = XK2A33Z623;
 				GENERATE_INFOPLIST_FILE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = today.jason.remTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -488,11 +852,12 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = XK2A33Z623;
 				GENERATE_INFOPLIST_FILE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = today.jason.remTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -576,6 +941,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		969F3EFD2B3A8C4D0085787B /* XCRemoteSwiftPackageReference "HotKey" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/soffes/HotKey";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		969F3EFE2B3A8C4D0085787B /* HotKey */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 969F3EFD2B3A8C4D0085787B /* XCRemoteSwiftPackageReference "HotKey" */;
+			productName = HotKey;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 961C95CE2B2E19B30093F228 /* Project object */;
 }
