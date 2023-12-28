@@ -68,8 +68,12 @@ complete novice at Swift.
     - [I've also been exploring novel approaches to vector dbs](https://github.com/jasonjmcghee/portable-hnsw)
 - Multi-monitor support
 
-### Contributors ✨
+## Contributors ✨
 Be the first!
+
+### FAQ
+- Where is my data?
+    - `~/Library/Application\ Support/today.jason.rem/`
 
 ### XCode + copy / paste from history:
 
