@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		102CA4C82B3E240C00C3DA2E /* SQLite.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 96E66BC32B2F5745006E1E97 /* SQLite.framework */; };
 		961C95DA2B2E19B30093F228 /* remApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961C95D92B2E19B30093F228 /* remApp.swift */; };
 		961C95DC2B2E19B30093F228 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961C95DB2B2E19B30093F228 /* ContentView.swift */; };
 		961C95E12B2E19B40093F228 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 961C95E02B2E19B40093F228 /* Preview Assets.xcassets */; };
@@ -19,7 +20,6 @@
 		961C96152B2EBEE50093F228 /* DB.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961C96142B2EBEE50093F228 /* DB.swift */; };
 		969BA2EC2B3D1D46009EE9C6 /* SettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 969BA2EB2B3D1D46009EE9C6 /* SettingsManager.swift */; };
 		969F3EFF2B3A8C4D0085787B /* HotKey in Frameworks */ = {isa = PBXBuildFile; productRef = 969F3EFE2B3A8C4D0085787B /* HotKey */; };
-		969F3F042B3B70560085787B /* SQLite.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 96E66BBF2B2F5745006E1E97 /* SQLite.framework */; };
 		969F3F052B3B70560085787B /* SQLite.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 96E66BBF2B2F5745006E1E97 /* SQLite.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		969F3F082B3B7C7C0085787B /* RemFileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 969F3F072B3B7C7C0085787B /* RemFileManager.swift */; };
 		969F3F0B2B3CB2110085787B /* Field.swift in Sources */ = {isa = PBXBuildFile; fileRef = 969F3F0A2B3CB2110085787B /* Field.swift */; };
@@ -201,7 +201,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				969F3F042B3B70560085787B /* SQLite.framework in Frameworks */,
+				102CA4C82B3E240C00C3DA2E /* SQLite.framework in Frameworks */,
 				969F3EFF2B3A8C4D0085787B /* HotKey in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
