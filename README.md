@@ -15,6 +15,8 @@ _Note: Only tested on Apple Silicon, and the release is Apple Silicon._
 
 Please log any bugs / issues you find!
 
+Working on getting an Apple Development account for official distribution...
+
 ---
 
 I think the idea of recording everything you see has the potential to change how we interact 
