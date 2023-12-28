@@ -191,8 +191,8 @@
 		969F3F0C2B3CCEC30085787B /* Ask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Ask.swift; sourceTree = "<group>"; };
 		96B0DA372B3A02530030E8AE /* ClipboardManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardManager.swift; sourceTree = "<group>"; };
 		96B0DA392B3A08280030E8AE /* TextMerger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextMerger.swift; sourceTree = "<group>"; };
-		96E66BB42B2F5745006E1E97 /* SQLite.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SQLite.xcodeproj; path = "../../Downloads/SQLite.swift-master/SQLite.xcodeproj"; sourceTree = "<group>"; };
-		96E66BCC2B2F574D006E1E97 /* SQLite.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SQLite.xcodeproj; path = "../../../Downloads/SQLite.swift-master/SQLite.xcodeproj"; sourceTree = "<group>"; };
+		96E66BB42B2F5745006E1E97 /* SQLite.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SQLite.xcodeproj; path = ./SQLite.swift/SQLite.xcodeproj; sourceTree = "<group>"; };
+		96E66BCC2B2F574D006E1E97 /* SQLite.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SQLite.xcodeproj; path = ./SQLite.swift/SQLite.xcodeproj; sourceTree = "<group>"; };
 		96F062172B35111D00695621 /* Search.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Search.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
