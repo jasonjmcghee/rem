@@ -11,6 +11,12 @@ An open source approach to locally record everything you view on your Apple Sili
 
 _Note: Only tested on Apple Silicon, and the release is Apple Silicon._
 
+---
+
+Please log any bugs / issues you find!
+
+---
+
 I think the idea of recording everything you see has the potential to change how we interact 
 with our computers, and believe it should be open source.
 
