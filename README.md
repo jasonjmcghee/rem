@@ -8,7 +8,7 @@
 
 An open source approach to locally record everything you view on your Apple Silicon computer.
 
-_Note: Relies on Apple Silicon, and configured to only produce Apple Silicon builds._
+_Note: Only tested on Apple Silicon, and the release is Apple Silicon._
 
 I think the idea of recording everything you see has the potential to change how we interact 
 with our computers, and believe it should be open source.
