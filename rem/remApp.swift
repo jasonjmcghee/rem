@@ -18,6 +18,12 @@ final class MainWindow: NSWindow {
     }
 }
 
+enum CaptureState {
+    case recording
+    case stopped
+    case paused
+}
+
 @main
 struct remApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
@@ -30,7 +36,7 @@ struct remApp: App {
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     var timelineViewWindow: NSWindow?
-    var timelineView = TimelineView(viewModel: TimelineViewModel())
+    var timelineView: TimelineView?
     
     var settingsManager = SettingsManager()
     var settingsViewWindow: NSWindow?
@@ -47,7 +53,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var captureOutputURL: URL?
     
     var lastVideoEncodingTime = Date()
-    let chunkSizeSeconds = TimeInterval(300)
     
     let idleStatusImage = NSImage(named: "StatusIdle")
     let recordingStatusImage = NSImage(named: "StatusRecording")
@@ -55,15 +60,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     let ocrQueue = DispatchQueue(label: "today.jason.ocrQueue", attributes: .concurrent)
     var imageBufferQueue = DispatchQueue(label: "today.jason.imageBufferQueue", attributes: .concurrent)
     var imageDataBuffer = [Data]()
+    
     var ffmpegTimer: Timer?
     var screenshotTimer: Timer?
-    private let frameThreshold = 300 // Number of frames after which FFmpeg processing is triggered
-    
+        
+    private let frameThreshold = 30 // Number of frames after which FFmpeg processing is triggered
     private var ffmpegProcess: Process?
     private var ffmpegInputPipe: Pipe?
     
-    private let processingQueue = DispatchQueue(label: "today.jason.processingQueue", attributes: .concurrent)
     private var pendingScreenshotURLs = [URL]()
+    
+    private var isCapturing: CaptureState = .stopped
+    private let screenshotQueue = DispatchQueue(label: "today.jason.screenshotQueue")
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let _ = DatabaseManager.shared
@@ -85,26 +93,51 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             self?.handleGlobalScrollEvent(event)
         }
         
+        NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] (event) in
+            if (self?.searchViewWindow?.isVisible ?? false) && event.keyCode == 53 {
+                DispatchQueue.main.async { [weak self] in
+                    self?.closeSearchView()
+                }
+            }
+            
+            if (self?.isTimelineOpen() ?? false) && event.keyCode == 53 {
+                DispatchQueue.main.async { [weak self] in
+                    self?.closeTimelineView()
+                }
+            }
+        }
+        
         NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] (event) in
             if event.modifierFlags.contains([.command, .shift]) && event.keyCode == 3 {
-                self?.showSearchView()
+                DispatchQueue.main.async { [weak self] in
+                    self?.closeTimelineView()
+                    self?.showSearchView()
+                }
             }
             
             if (self?.searchViewWindow?.isVisible ?? false) && event.keyCode == 53 {
-                self?.closeSearchView()
+                DispatchQueue.main.async { [weak self] in
+                    self?.closeSearchView()
+                }
             }
             
-            if (self?.timelineViewWindow?.isVisible ?? false) && event.keyCode == 53 {
-                self?.closeTimelineView()
+            if (self?.isTimelineOpen() ?? false) && event.keyCode == 53 {
+                DispatchQueue.main.async { [weak self] in
+                    self?.closeTimelineView()
+                }
             }
             return event
         }
         
         NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { [weak self] (event) in
-            guard !event.modifierFlags.contains(.command) else { return event }
-
-            if event.scrollingDeltaX != 0 {
-                self?.timelineView.viewModel.updateIndex(withDelta: event.scrollingDeltaX)
+            if !event.modifierFlags.contains(.command) && event.scrollingDeltaX != 0 {
+                self?.timelineView?.viewModel.updateIndex(withDelta: event.scrollingDeltaX)
+            }
+            
+            if event.modifierFlags.contains(.command) && event.scrollingDeltaY > 0 && (self?.isTimelineOpen() ?? false) { // Check if scroll up
+                DispatchQueue.main.async { [weak self] in
+                    self?.closeTimelineView()
+                }
             }
             return event
         }
@@ -116,14 +149,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func setupMenu() {
         DispatchQueue.main.async {
             if let button = self.statusBarItem.button {
-                button.image = self.isCapturing ? self.recordingStatusImage : self.idleStatusImage
+                button.image = self.isCapturing == .recording ? self.recordingStatusImage : self.idleStatusImage
                 button.action = #selector(self.togglePopover(_:))
             }
             let menu = NSMenu()
-            let recordingTitle = self.isCapturing ? "Stop Remembering" : "Start Remembering"
-            let recordingSelector = self.isCapturing ? #selector(self.disableRecording) : #selector(self.enableRecording)
+            let recordingTitle = self.isCapturing == .recording ? "Stop Remembering" : "Start Remembering"
+            let recordingSelector = self.isCapturing == .recording ? #selector(self.disableRecording) : #selector(self.enableRecording)
             menu.addItem(NSMenuItem(title: recordingTitle, action: recordingSelector, keyEquivalent: ""))
-            menu.addItem(NSMenuItem(title: "Open Timeline", action: #selector(self.showTimelineView), keyEquivalent: ""))
+            menu.addItem(NSMenuItem(title: "Toggle Timeline", action: #selector(self.toggleTimeline), keyEquivalent: ""))
             menu.addItem(NSMenuItem(title: "Search", action: #selector(self.showSearchView), keyEquivalent: ""))
             menu.addItem(NSMenuItem(title: "Copy Recent Context", action: #selector(self.copyRecentContext), keyEquivalent: ""))
             menu.addItem(NSMenuItem.separator()) // Separator
@@ -136,6 +169,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             )
             menu.addItem(NSMenuItem(title: "Quit", action: #selector(self.quitApp), keyEquivalent: "q"))
             self.statusBarItem.menu = menu
+        }
+    }
+    
+    @objc func toggleTimeline() {
+        if self.isTimelineOpen() {
+            self.closeTimelineView()
+        } else {
+            let frame = DatabaseManager.shared.getLastAccessibleFrame()
+            self.showTimelineView(with: frame)
         }
     }
     
@@ -168,16 +210,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let response = alert.runModal()
         
         if response == .alertFirstButtonReturn {
+            alert.window.close()
             self.forgetEverything()
+        } else {
+            alert.window.close()
         }
     }
     
     private func handleGlobalScrollEvent(_ event: NSEvent) {
         guard event.modifierFlags.contains(.command) else { return }
         
-        if event.scrollingDeltaX < 0 && !(timelineViewWindow?.isVisible ?? false) { // Check if scroll up
+        if event.scrollingDeltaY < 0 && !self.isTimelineOpen() { // Check if scroll up
             DispatchQueue.main.async { [weak self] in
-                self?.showTimelineView()
+                self?.showTimelineView(with: DatabaseManager.shared.getMaxFrame())
             }
         }
     }
@@ -191,17 +236,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
     }
-    
-    private let serialQueue = DispatchQueue(label: "today.jason.recordingBufferQueue")
-
-    private var isCapturing = false
-    private let screenshotQueue = DispatchQueue(label: "today.jason.screenshotQueue")
 
     func startScreenCapture() async {        
         do {
             let shareableContent = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: false)
 
-            isCapturing = true
             setupMenu()
             screenshotQueue.async { [weak self] in
                 self?.scheduleScreenshot(shareableContent: shareableContent)
@@ -218,7 +257,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func scheduleScreenshot(shareableContent: SCShareableContent) {
-        guard isCapturing else { return }
+        guard isCapturing == .recording else { return }
         
         Task {
             guard let display = shareableContent.displays.first else { return }
@@ -230,9 +269,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             guard let image = CGDisplayCreateImage(display.displayID, rect: display.frame) else { return }
             let frameId = DatabaseManager.shared.insertFrame(activeApplicationName: activeApplicationName)
             
-            if (!isTimelineOpen()) {
-                // Make sure to set timeline to be the latest frame
-                await self.timelineView.viewModel.setIndexToLatest()
+            DispatchQueue.main.async {
+                if (!self.isTimelineOpen()) {
+                    // Make sure to set timeline to be the latest frame
+                    self.timelineView?.viewModel.setIndexToLatest()
+                }
             }
             
             await processScreenshot(frameId: frameId, image: image, frame: display.frame)
@@ -247,7 +288,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if let savedir = RemFileManager.shared.getSaveDir() {
             if FileManager.default.fileExists(atPath: savedir.path) {
                 do {
-                    try FileManager.default.removeItem(at: savedir)
+                    try FileManager.default.subpathsOfDirectory(atPath: savedir.path).forEach { path in
+                        if !path.hasSuffix(".sqlite3") {
+                            let fileToDelete = savedir.appendingPathComponent(path)
+                            try FileManager.default.removeItem(at: fileToDelete)
+                        }
+                    }
                 } catch {
                     print("Error deleting folder: \(error)")
                 }
@@ -255,13 +301,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 print("Error finding folder.")
             }
         }
-        DatabaseManager.shared.reconnect()
+        DatabaseManager.shared.purge()
     }
     
     func stopScreenCapture() {
-        isCapturing = false
-        self.timelineView.viewModel.setIndexToLatest()
+        isCapturing = .stopped
+        self.timelineView?.viewModel.setIndexToLatest()
         print("Screen capture stopped")
+    }
+    
+    func pauseScreenCapture() {
+        isCapturing = .paused
+        self.timelineView?.viewModel.setIndexToLatest()
+        print("Screen capture paused")
     }
     
 //    // Old method
@@ -282,7 +334,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         imageBufferQueue.async(flags: .barrier) { [weak self] in
             guard let strongSelf = self else { return }
             strongSelf.imageDataBuffer.append(data)
-
+            
             // If the buffer reaches the threshold, process the chunk
             if strongSelf.imageDataBuffer.count >= strongSelf.frameThreshold {
                 let chunk = Array(strongSelf.imageDataBuffer.prefix(strongSelf.frameThreshold))
@@ -317,6 +369,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             let ffmpegInputPipe = Pipe()
             ffmpegProcess.standardInput = ffmpegInputPipe
             
+            // Ignore SIGPIPE
+            signal(SIGPIPE, SIG_IGN)
+            
+            // Setup logging for FFmpeg's output
+            let ffmpegOutputPipe = Pipe()
+            let ffmpegErrorPipe = Pipe()
+            ffmpegProcess.standardOutput = ffmpegOutputPipe
+            ffmpegProcess.standardError = ffmpegErrorPipe
+
             // Start the FFmpeg process
             do {
                 try ffmpegProcess.run()
@@ -324,37 +385,66 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 print("Failed to start FFmpeg process for chunk: \(error)")
                 return
             }
-            
+
             // Write the chunk data to the FFmpeg process
             for (index, data) in chunk.enumerated() {
-                ffmpegInputPipe.fileHandleForWriting.write(data)
+                do {
+                    try ffmpegInputPipe.fileHandleForWriting.write(contentsOf: data)
+                } catch {
+                    print("Error writing to FFmpeg process: \(error)")
+                    break
+                }
             }
-            
-            // Close the pipe and let the process run to completion
+
+            // Close the pipe and handle the process completion
             ffmpegInputPipe.fileHandleForWriting.closeFile()
+            
+            // Read FFmpeg's output and error
+            let outputData = ffmpegOutputPipe.fileHandleForReading.readDataToEndOfFile()
+            let errorData = ffmpegErrorPipe.fileHandleForReading.readDataToEndOfFile()
+            if let output = String(data: outputData, encoding: .utf8) {
+                print("FFmpeg Output: \(output)")
+            }
+            if let errorOutput = String(data: errorData, encoding: .utf8) {
+                print("FFmpeg Error: \(errorOutput)")
+            }
         } else {
             print("Failed to save ffmpeg video")
         }
     }
 
     @objc func enableRecording() {
+        isCapturing = .recording
+
         Task {
             await startScreenCapture()
         }
     }
     
-    @objc func disableRecording() {
-        // Stop screen capture
-        stopScreenCapture()
+    @objc func pauseRecording() {
+        disableRecording(justPause: true)
+    }
+    
+    @objc func disableRecording(justPause: Bool = false) {
+        if isCapturing != .recording {
+            return
+        }
         
-        Task {
-            // Process any remaining frames in the buffer
-            imageBufferQueue.sync { [weak self] in
-                guard let strongSelf = self else { return }
-                
+        if justPause {
+            pauseScreenCapture()
+        } else {
+            // Stop screen capture
+            stopScreenCapture()
+        }
+        
+        // Process any remaining frames in the buffer
+        imageBufferQueue.sync { [weak self] in
+            guard let strongSelf = self else { return }
+            
+            if !strongSelf.imageDataBuffer.isEmpty {
+                let buffer = strongSelf.imageDataBuffer
                 if !strongSelf.imageDataBuffer.isEmpty {
                     strongSelf.processChunk(strongSelf.imageDataBuffer)
-                    strongSelf.imageDataBuffer.removeAll()
                 }
             }
         }
@@ -384,12 +474,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     let nsImage = NSImage(cgImage: image, size: NSSize(width: image.width, height: image.height))
                     let analysis = try await ImageAnalyzer().analyze(nsImage, orientation: CGImagePropertyOrientation.up, configuration: configuration)
                     let textToAssociate = analysis.transcript
-                    var text = [textToAssociate]
+                    var texts = [textToAssociate]
                     if self.settingsManager.settings.saveEverythingCopiedToClipboard {
                         let newClipboardText = ClipboardManager.shared.getClipboardIfChanged() ?? ""
-                        text.append(newClipboardText)
+                        texts.append(newClipboardText)
                     }
-                    DatabaseManager.shared.insertTextForFrame(frameId: frameId, text: text.joined(separator: "\n"))
+                    let cleanText = TextMerger.shared.mergeTexts(texts: texts)
+                    DatabaseManager.shared.insertTextForFrame(frameId: frameId, text: cleanText)
                     // print(textToAssociate)
                 } catch {
                     print("OCR error: \(error.localizedDescription)")
@@ -430,6 +521,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         print("OCR Result for \(imageURL.lastPathComponent): \(text)")
     }
     
+    func windowWillClose(_ notification: Notification) {
+        // Here you can take action when a window closes
+        print("Window is closing")
+        // Add your custom action here
+    }
+    
     private func processImageDataBuffer() {
         // Temporarily store the buffered data and clear the buffer
         let tempBuffer = imageDataBuffer
@@ -441,7 +538,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
     
-    @objc func showTimelineView() {
+    @objc func showTimelineView(with index: Int64) {
+        closeSearchView()
         if timelineViewWindow == nil {
             let screenRect = NSScreen.main?.frame ?? NSRect.zero
             timelineViewWindow = MainWindow(
@@ -455,24 +553,30 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
             timelineViewWindow?.collectionBehavior = [.fullScreenAuxiliary, .canJoinAllSpaces, .participatesInCycle]
             timelineViewWindow?.ignoresMouseEvents = false
-            timelineViewWindow?.contentView = NSHostingView(rootView: timelineView)
-            timelineViewWindow?.orderFrontRegardless() // Ensure it comes to the front
+            timelineView = TimelineView(viewModel: TimelineViewModel(), onClose: {
+                DispatchQueue.main.async { [weak self] in
+                    self?.closeTimelineView()
+                }
+            })
+            timelineView?.viewModel.updateIndex(withIndex: index)
 
-        } else if (!(timelineViewWindow?.isVisible ?? false)) {
-            self.timelineViewWindow?.contentView?.subviews.first?.subviews.first?.enterFullScreenMode(NSScreen.main!)
+            timelineViewWindow?.contentView = NSHostingView(rootView: timelineView)
+            timelineViewWindow?.makeKeyAndOrderFront(nil)
+            timelineViewWindow?.orderFrontRegardless() // Ensure it comes to the front
+        } else if (!self.isTimelineOpen()) {
+            timelineView?.viewModel.updateIndex(withIndex: index)
+
             timelineViewWindow?.makeKeyAndOrderFront(nil)
             timelineViewWindow?.orderFrontRegardless() // Ensure it comes to the front
         }
     }
     
     private func isTimelineOpen() -> Bool {
-        return self.timelineViewWindow?.contentView?.subviews.first?.subviews.first?.isInFullScreenMode ?? false
+        return timelineViewWindow?.isVisible ?? false
     }
     
     func openFullView(atIndex index: Int64) {
-        self.timelineView.viewModel.updateIndex(withIndex: index)
-        closeSearchView()
-        self.showTimelineView()
+        self.showTimelineView(with: index)
     }
     
     func closeSearchView() {
@@ -486,6 +590,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     @objc func showSearchView() {
+        closeTimelineView()
         // Ensure that the search view window is created and shown
         if searchViewWindow == nil {
             let screenRect = NSScreen.main?.frame ?? NSRect.zero
@@ -498,9 +603,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
             searchViewWindow?.center()
             searchViewWindow?.contentView = NSHostingView(rootView: searchView)
+            
             searchViewWindow?.makeKeyAndOrderFront(nil)
             searchViewWindow?.orderFrontRegardless() // Ensure it comes to the front
-            
         } else if (!(searchViewWindow?.isVisible ?? false)) {
             searchViewWindow?.makeKeyAndOrderFront(nil)
             searchViewWindow?.orderFrontRegardless() // Ensure it comes to the front

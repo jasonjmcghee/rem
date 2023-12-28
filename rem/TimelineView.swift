@@ -13,11 +13,14 @@ struct TimelineView: View {
 
     let overlayView = ImageAnalysisOverlayView()
     private let imageAnalyzer = ImageAnalyzer()
+    
+    var onClose: () -> Void  // Closure to handle thumbnail click
 
     private var fps: Int32 = 25
     
-    init(viewModel: TimelineViewModel) {
+    init(viewModel: TimelineViewModel, onClose: @escaping () -> Void) {
         self.viewModel = viewModel
+        self.onClose = onClose
         _frame = State(initialValue: NSScreen.main?.visibleFrame ?? NSRect.zero)
         _customHostingView = State(initialValue: nil)
     }
@@ -27,13 +30,13 @@ struct TimelineView: View {
             let index = viewModel.currentFrameIndex
             if let image = DatabaseManager.shared.getImage(index: index) {
                 let nsImage = NSImage(cgImage: image, size: NSSize(width: image.width, height: image.width))
-                CustomHostingControllerRepresentable(image: nsImage, analysis: $imageAnalysis, frame: frame)
+                CustomHostingControllerRepresentable(onClose: onClose, image: nsImage, analysis: $imageAnalysis, frame: frame)
                     .frame(width: frame.width, height: frame.height)
                     .ignoresSafeArea(.all)
-                    .onChange(of: viewModel.currentFrameIndex) { newIndex in
+                    .onChange(of: viewModel.currentFrameIndex) {
                         debounceTimer?.invalidate()
                         debounceTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: false) { _ in
-                            if let image = DatabaseManager.shared.getImage(index: newIndex) {
+                            if let image = DatabaseManager.shared.getImage(index: viewModel.currentFrameIndex) {
                                 analyzeImage(image)  // Assuming `image` is available here, modify as needed
                             }
                         }
@@ -43,22 +46,20 @@ struct TimelineView: View {
                         analyzeImage(image)
                     }
             } else {
-                Color.clear
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                ZStack {
+                    VisualEffectView(material: .hudWindow, blendingMode: .behindWindow)
+                        .ignoresSafeArea()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    VStack(alignment: .center) {
+                        Text("Nothing to remember, or missing frame (if missing, sorry, still alpha!)")
+                            .padding()
+                            .background(RoundedRectangle(cornerRadius: 10)
+                                .fill(Color.white.opacity(0.1)))
+                    }
+                }
             }
         }
         .ignoresSafeArea(.all)
-    }
-    
-    private func createCustomHostingView(with image: NSImage) -> CustomHostingView {
-        if let view = customHostingView {
-            view.updateImage(image)
-            return view
-        } else {
-            let view = CustomHostingView(image: image, frame: frame)
-            customHostingView = view
-            return view
-        }
     }
     
     private func analyzeImage(_ image: CGImage) {
@@ -70,22 +71,13 @@ struct TimelineView: View {
                 let analysis = try await imageAnalyzer.analyze(nsImage, orientation: CGImagePropertyOrientation.up, configuration: configuration)
                 DispatchQueue.main.async {
                     self.imageAnalysis = analysis
-                    print("Analysis successful: \(analysis.transcript)")
+                    // print("Analysis successful: \(analysis.transcript)")
                 }
             } catch {
                 print("Error analyzing image: \(error)")
             }
         }
     }
-        
-        var closeButton: some View {
-            Button("Exit Full Screen") {
-                if let window = NSApplication.shared.windows.first(where: { $0.contentView is NSHostingView<TimelineView> }) {
-                    window.toggleFullScreen(nil)
-                }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-        }
         
         
 //        struct Timeline_Previews: PreviewProvider {
@@ -172,20 +164,19 @@ class CustomHostingView: NSHostingView<AnyView> {
     }
 
     func updateAnalysis(_ analysis: ImageAnalysis?) {
-        if analysis != nil {
-            self.exitFullScreenMode()
-        }
         overlayView.analysis = analysis
     }
 }
 
 struct CustomHostingControllerRepresentable: NSViewControllerRepresentable {
+    var onClose: () -> Void  // Closure to handle thumbnail click
     var image: NSImage
     @Binding var analysis: ImageAnalysis?
     var frame: NSRect
 
     func makeNSViewController(context: Context) -> CustomHostingViewController {
         let viewController = CustomHostingViewController()
+        viewController.onClose = onClose
         viewController.updateImage(image, frame: frame)
         return viewController
     }
@@ -193,25 +184,30 @@ struct CustomHostingControllerRepresentable: NSViewControllerRepresentable {
     func updateNSViewController(_ nsViewController: CustomHostingViewController, context: Context) {
         nsViewController.updateImage(image, frame: frame)
         nsViewController.updateAnalysis(analysis)
+        nsViewController.onClose = onClose
     }
 }
 
 class CustomHostingViewController: NSViewController {
+    var onClose: (() -> Void)?  // Closure to handle thumbnail click
     var customHostingView: CustomHostingView?
+    var interceptingView: CustomInterceptingView?
     
     override func viewWillAppear() {
         view.enterFullScreenMode(NSScreen.main!)
     }
 
     override func loadView() {
-        let interceptingView = CustomInterceptingView()
-        self.view = interceptingView // Basic NSView as a container
+        let _interceptingView = CustomInterceptingView()
+        _interceptingView.onClose = onClose
+        self.view = _interceptingView // Basic NSView as a container
         if customHostingView == nil {
             customHostingView = CustomHostingView(image: NSImage(), frame: self.view.bounds)
             customHostingView?.frame = CGRect(origin: .zero, size: self.view.bounds.size)
             view.addSubview(customHostingView!)
         }
-        interceptingView.customHostingView = customHostingView
+        _interceptingView.customHostingView = customHostingView
+        interceptingView = _interceptingView
     }
 
     func updateImage(_ image: NSImage, frame: NSRect) {
@@ -231,14 +227,12 @@ class CustomHostingViewController: NSViewController {
 }
 
 class CustomInterceptingView: NSView {
+    var onClose: (() -> Void)?  // Closure to handle thumbnail click
     weak var customHostingView: CustomHostingView?
     
     private func exit() {
-        if (self.isInFullScreenMode) {
-            self.exitFullScreenMode()
-            self.window?.isReleasedWhenClosed = false
-            self.window?.close()
-        }
+        self.exitFullScreenMode()
+        self.onClose?()
     }
     
     override func hitTest(_ point: NSPoint) -> NSView? {
@@ -287,23 +281,26 @@ class TimelineViewModel: ObservableObject {
         var nextValue = currentFrameContinuous - delta * speedFactor
         let maxValue = Double(DatabaseManager.shared.getMaxFrame())
         let clampedValue = min(max(1, nextValue), maxValue)
-        
-        
         self.currentFrameContinuous = clampedValue
-        self.currentFrameIndex = Int64(currentFrameContinuous)
+        self.updateIndexSafely()
     }
     
     func updateIndex(withIndex: Int64) {
         let maxValue = Double(DatabaseManager.shared.getMaxFrame())
         let clampedValue = min(max(1, Double(withIndex)), maxValue)
-        
-        
         self.currentFrameContinuous = clampedValue
-        self.currentFrameIndex = Int64(currentFrameContinuous)
+        self.updateIndexSafely()
     }
     
     func setIndexToLatest() {
         self.currentFrameContinuous = Double(DatabaseManager.shared.getMaxFrame())
         self.currentFrameIndex = Int64(currentFrameContinuous)
+    }
+    
+    func updateIndexSafely() {
+        let rounded = Int64(currentFrameContinuous)
+        if DatabaseManager.shared.getFrame(forIndex: rounded) != nil {
+            self.currentFrameIndex = rounded
+        }
     }
 }

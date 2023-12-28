@@ -50,11 +50,17 @@ struct SearchBar: View {
                             .padding(.leading, 12)
                     }
                 )
-                .onSubmit(onSearch) // Trigger search when user submits
+                .onSubmit {
+                    Task {
+                        onSearch()
+                    }
+                } // Trigger search when user submits
                 .onChange(of: text) {
                     debounceTimer?.invalidate()
                     debounceTimer = Timer.scheduledTimer(withTimeInterval: 0.3, repeats: false) { _ in
-                        onSearch()
+                        Task {
+                            onSearch()
+                        }
                     }
                 } // Trigger search when text changes
                 .onAppear {
@@ -247,7 +253,11 @@ struct ResultsView: View {
                 .padding()
             }
         }
-        .onAppear(perform: loadRecentResults)
+        .onAppear {
+            Task {
+                loadRecentResults()
+            }
+        }
     }
     
     private func performSearch() {

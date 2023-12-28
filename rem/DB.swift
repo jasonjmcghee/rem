@@ -49,16 +49,16 @@ class DatabaseManager {
         lastFrameId = getLastFrameId()
     }
     
-    private func connect() {
-        if let savedir = RemFileManager.shared.getSaveDir() {
-            db = try! Connection("\(savedir)/db.sqlite3")
-        } else {
-            db = try! Connection("db.sqlite3")
+    func purge() {
+        do {
+            try db.run(self.videoChunks.drop(ifExists: true))
+            try db.run(self.frames.drop(ifExists: true))
+            try db.run(self.allText.drop(ifExists: true))
+        } catch {
+            print("Failed to delete tables")
         }
-    }
-    
-    func reconnect() {
-        self.connect()
+        
+        createTables()
         currentChunkId = getCurrentChunkId()
         lastFrameId = getLastFrameId()
     }
@@ -132,35 +132,55 @@ class DatabaseManager {
     }
     
     func getFrame(forIndex index: Int64) -> (offsetIndex: Int64, filePath: String)? {
-        let query = frames.join(videoChunks, on: chunkId == videoChunks[id]).filter(frames[id] == index).limit(1)
-        if let frame = try! db.pluck(query) {
-            return (frame[self.offsetIndex], frame[self.filePath])
+        do {
+            let query = frames.join(videoChunks, on: chunkId == videoChunks[id]).filter(frames[id] == index).limit(1)
+            if let frame = try db.pluck(query) {
+                return (frame[self.offsetIndex], frame[self.filePath])
+            }
+
+//            let justFrameQuery = frames.filter(frames[id] === index).limit(1)
+//            try! db.run(justFrameQuery.delete())
+        } catch {
+            return nil
         }
+        
         return nil
     }
 
     // Function to retrieve the file path of a video chunk by its index
     func getVideoChunkPath(byIndex index: Int64) -> String? {
-        let query = videoChunks.filter(chunkId == index)
-        if let chunk = try! db.pluck(query) {
-            return chunk[filePath]
+        do {
+            let query = videoChunks.filter(chunkId == index)
+            if let chunk = try db.pluck(query) {
+                return chunk[filePath]
+            }
+        } catch {
+            return nil
         }
         return nil
     }
 
 // Function to get the timestamp of the last inserted frame
     private func getLastFrameTimestamp() -> Date? {
-        let query = frames.select(timestamp).order(id.desc).limit(1)
-        if let lastFrame = try! db.pluck(query) {
-            return lastFrame[timestamp]
+        do {
+            let query = frames.select(timestamp).order(id.desc).limit(1)
+            if let lastFrame = try db.pluck(query) {
+                return lastFrame[timestamp]
+            }
+        } catch {
+            return nil
         }
         return nil
     }
     
     private func getLastFrameIndexFromDB() -> Int64? {
-        let query = frames.select(id).order(id.desc).limit(1)
-        if let lastFrame = try! db.pluck(query) {
-            return lastFrame[id]
+        do {
+            let query = frames.select(id).order(id.desc).limit(1)
+            if let lastFrame = try db.pluck(query) {
+                return lastFrame[id]
+            }
+        } catch {
+            return nil
         }
         return nil
     }
@@ -181,6 +201,18 @@ class DatabaseManager {
     
     func getMaxFrame() -> Int64 {
         return lastFrameId
+    }
+    
+    func getLastAccessibleFrame() -> Int64 {
+        do {
+            let query = frames.join(videoChunks, on: chunkId == videoChunks[id]).select(frames[id]).order(frames[id].desc).limit(1)
+            if let lastFrame = try db.pluck(query) {
+                return lastFrame[id]
+            }
+        } catch {
+            return 0
+        }
+        return 0
     }
     
     func search(searchText: String, limit: Int = 9) -> [(frameId: Int64, fullText: String, applicationName: String?, timestamp: Date)] {
@@ -230,6 +262,9 @@ class DatabaseManager {
         guard let frameData = DatabaseManager.shared.getFrame(forIndex: index) else { return nil }
         
         let videoURL = URL(fileURLWithPath: frameData.filePath)
+        if !FileManager.default.fileExists(atPath: videoURL.path) {
+            return nil
+        }
         
         return extractFrame(from: videoURL, frameOffset: frameData.offsetIndex)
     }
@@ -246,7 +281,7 @@ class DatabaseManager {
             let aI = try generator.copyCGImage(at: a, actualTime: nil)
             return aI
         } catch {
-            print("Error extracting frame: \(error)")
+            print("Error extracting frame \(videoURL): \(error)")
             return nil
         }
     }
