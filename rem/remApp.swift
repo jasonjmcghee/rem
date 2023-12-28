@@ -31,6 +31,9 @@ struct remApp: App {
 class AppDelegate: NSObject, NSApplicationDelegate {
     var timelineViewWindow: NSWindow?
     var timelineView = TimelineView(viewModel: TimelineViewModel())
+    
+    var settingsManager = SettingsManager()
+    var settingsViewWindow: NSWindow?
 
     var statusBarItem: NSStatusItem!
     var popover: NSPopover!
@@ -123,10 +126,34 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             menu.addItem(NSMenuItem(title: "Open Timeline", action: #selector(self.showTimelineView), keyEquivalent: ""))
             menu.addItem(NSMenuItem(title: "Search", action: #selector(self.showSearchView), keyEquivalent: ""))
             menu.addItem(NSMenuItem(title: "Copy Recent Context", action: #selector(self.copyRecentContext), keyEquivalent: ""))
+            menu.addItem(NSMenuItem.separator()) // Separator
             menu.addItem(NSMenuItem(title: "⚠️ Purge All Data ⚠️", action: #selector(self.confirmPurgeAllData), keyEquivalent: ""))
             menu.addItem(NSMenuItem.separator()) // Separator
+            menu.addItem(
+                withTitle: "Settings",
+                action: #selector(self.openSettings),
+                keyEquivalent: ""
+            )
             menu.addItem(NSMenuItem(title: "Quit", action: #selector(self.quitApp), keyEquivalent: "q"))
             self.statusBarItem.menu = menu
+        }
+    }
+    
+    @objc func openSettings() {
+        if settingsViewWindow == nil {
+            let settingsView = SettingsView(settingsManager: settingsManager)
+            settingsViewWindow = NSWindow(
+                contentRect: NSRect(x: 0, y: 0, width: 400, height: 300),
+                styleMask: [.titled, .closable],
+                backing: .buffered,
+                defer: false)
+            settingsViewWindow?.isReleasedWhenClosed = false
+            settingsViewWindow?.center()
+            settingsViewWindow?.contentView = NSHostingView(rootView: settingsView)
+            settingsViewWindow?.makeKeyAndOrderFront(nil)
+        }  else if (!(settingsViewWindow?.isVisible ?? false)) {
+            settingsViewWindow?.makeKeyAndOrderFront(nil)
+            settingsViewWindow?.orderFrontRegardless() // Ensure it comes to the front
         }
     }
     
@@ -357,8 +384,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     let nsImage = NSImage(cgImage: image, size: NSSize(width: image.width, height: image.height))
                     let analysis = try await ImageAnalyzer().analyze(nsImage, orientation: CGImagePropertyOrientation.up, configuration: configuration)
                     let textToAssociate = analysis.transcript
-                    let newClipboardText = ClipboardManager.shared.getClipboardIfChanged() ?? ""
-                    DatabaseManager.shared.insertTextForFrame(frameId: frameId, text: [textToAssociate, newClipboardText].joined(separator: "\n"))
+                    var text = [textToAssociate]
+                    if self.settingsManager.settings.saveEverythingCopiedToClipboard {
+                        let newClipboardText = ClipboardManager.shared.getClipboardIfChanged() ?? ""
+                        text.append(newClipboardText)
+                    }
+                    DatabaseManager.shared.insertTextForFrame(frameId: frameId, text: text.joined(separator: "\n"))
                     // print(textToAssociate)
                 } catch {
                     print("OCR error: \(error.localizedDescription)")

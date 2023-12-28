@@ -17,6 +17,7 @@
 		961C96102B2E73B00093F228 /* ffmpeg in CopyFiles */ = {isa = PBXBuildFile; fileRef = 961C960D2B2E73840093F228 /* ffmpeg */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		961C96132B2EB7DB0093F228 /* TimelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961C96122B2EB7DB0093F228 /* TimelineView.swift */; };
 		961C96152B2EBEE50093F228 /* DB.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961C96142B2EBEE50093F228 /* DB.swift */; };
+		969BA2EC2B3D1D46009EE9C6 /* SettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 969BA2EB2B3D1D46009EE9C6 /* SettingsManager.swift */; };
 		969F3EFF2B3A8C4D0085787B /* HotKey in Frameworks */ = {isa = PBXBuildFile; productRef = 969F3EFE2B3A8C4D0085787B /* HotKey */; };
 		969F3F042B3B70560085787B /* SQLite.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 96E66BBF2B2F5745006E1E97 /* SQLite.framework */; };
 		969F3F052B3B70560085787B /* SQLite.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 96E66BBF2B2F5745006E1E97 /* SQLite.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -183,6 +184,7 @@
 		961C960D2B2E73840093F228 /* ffmpeg */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = ffmpeg; sourceTree = "<group>"; };
 		961C96122B2EB7DB0093F228 /* TimelineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimelineView.swift; sourceTree = "<group>"; };
 		961C96142B2EBEE50093F228 /* DB.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DB.swift; sourceTree = "<group>"; };
+		969BA2EB2B3D1D46009EE9C6 /* SettingsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsManager.swift; sourceTree = "<group>"; };
 		969F3F072B3B7C7C0085787B /* RemFileManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemFileManager.swift; sourceTree = "<group>"; };
 		969F3F092B3B7F760085787B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		969F3F0A2B3CB2110085787B /* Field.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Field.swift; sourceTree = "<group>"; };
@@ -261,6 +263,7 @@
 				969F3F072B3B7C7C0085787B /* RemFileManager.swift */,
 				969F3F0A2B3CB2110085787B /* Field.swift */,
 				969F3F0C2B3CCEC30085787B /* Ask.swift */,
+				969BA2EB2B3D1D46009EE9C6 /* SettingsManager.swift */,
 			);
 			path = rem;
 			sourceTree = "<group>";
@@ -593,6 +596,7 @@
 				961C95DA2B2E19B30093F228 /* remApp.swift in Sources */,
 				96B0DA382B3A02530030E8AE /* ClipboardManager.swift in Sources */,
 				969F3F0B2B3CB2110085787B /* Field.swift in Sources */,
+				969BA2EC2B3D1D46009EE9C6 /* SettingsManager.swift in Sources */,
 				969F3F0D2B3CCEC30085787B /* Ask.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
