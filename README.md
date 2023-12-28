@@ -30,7 +30,17 @@ This is 100% local. Please, read the code yourself.
 I wrote this in a couple days over the holidays, and if there's one takeaway, it's that I'm a
 complete novice at Swift.
 
+## Build it yourself
+- Open project in Xcode
+- Clone `https://github.com/stephencelis/SQLite.swift` and add it to the project
+- Product > Archive
+- Distribute App
+- Custom
+- Copy App
+
 ## Getting Started
+- Build it yourself
+  - If you really don't want to, download release and run `xattr -c rem.app`. This tells macos "all good". I'm not malicious, but don't take my word for it.
 - Launch the app
 - Click the brain
 - Click "Start Remembering"
@@ -42,6 +52,8 @@ complete novice at Swift.
 - In timeline, give Live Text a second and then you can select text
 - Click "Copy Recent Context" to grab a prompt for interacting with an LLM with what you've seen recently as context
 - Click "Purge All Data" to delete everything (useful if something breaks)
+
+(that should be all that's needed)
 
 ## Current supports:
 - Going back in time (full-screen scrubber of everything you've viewed)
