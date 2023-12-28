@@ -1,6 +1,6 @@
 # <img src="rem/Assets.xcassets/AppIcon.appiconset/AppIcon128x128@2x.png" width=24 /> rem
 
-🧠 Remember everything.
+🧠 Remember everything. (very alpha)
 
 ### Original Demo
 <a href="https://www.loom.com/share/091a48b318f04f22bdada62716298948">
