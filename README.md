@@ -2,6 +2,7 @@
 
 🧠 Remember everything.
 
+### Original Demo
 <a href="https://www.loom.com/share/091a48b318f04f22bdada62716298948">
   <img style="max-width:300px;" src="https://cdn.loom.com/sessions/thumbnails/091a48b318f04f22bdada62716298948-with-play.gif">
 </a>
@@ -46,3 +47,7 @@ complete novice at Swift.
 - Natural language search / agent interaction via updating local vector embedding
     - [I've also been exploring novel approaches to vector dbs](https://github.com/jasonjmcghee/portable-hnsw)
 - Multi-monitor support
+
+### XCode + copy / paste from history:
+
+https://github.com/jasonjmcghee/rem/assets/1522149/97acacb9-b8c6-4b9c-b452-5423fb4e4372
