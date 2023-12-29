@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		102CA4C82B3E240C00C3DA2E /* SQLite.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 96E66BC32B2F5745006E1E97 /* SQLite.framework */; };
+		102CA4DF2B3E691F00C3DA2E /* LaunchAtLogin in Frameworks */ = {isa = PBXBuildFile; productRef = 102CA4DE2B3E691F00C3DA2E /* LaunchAtLogin */; };
 		961C95DA2B2E19B30093F228 /* remApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961C95D92B2E19B30093F228 /* remApp.swift */; };
 		961C95DC2B2E19B30093F228 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961C95DB2B2E19B30093F228 /* ContentView.swift */; };
 		961C95E12B2E19B40093F228 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 961C95E02B2E19B40093F228 /* Preview Assets.xcassets */; };
@@ -201,6 +202,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				102CA4DF2B3E691F00C3DA2E /* LaunchAtLogin in Frameworks */,
 				102CA4C82B3E240C00C3DA2E /* SQLite.framework in Frameworks */,
 				969F3EFF2B3A8C4D0085787B /* HotKey in Frameworks */,
 			);
@@ -357,6 +359,7 @@
 			name = rem;
 			packageProductDependencies = (
 				969F3EFE2B3A8C4D0085787B /* HotKey */,
+				102CA4DE2B3E691F00C3DA2E /* LaunchAtLogin */,
 			);
 			productName = rem;
 			productReference = 961C95D62B2E19B30093F228 /* rem.app */;
@@ -432,6 +435,7 @@
 			mainGroup = 961C95CD2B2E19B30093F228;
 			packageReferences = (
 				969F3EFD2B3A8C4D0085787B /* XCRemoteSwiftPackageReference "HotKey" */,
+				102CA4DD2B3E691F00C3DA2E /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */,
 			);
 			productRefGroup = 961C95D72B2E19B30093F228 /* Products */;
 			projectDirPath = "";
@@ -947,6 +951,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		102CA4DD2B3E691F00C3DA2E /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sindresorhus/LaunchAtLogin-Modern";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
 		969F3EFD2B3A8C4D0085787B /* XCRemoteSwiftPackageReference "HotKey" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/soffes/HotKey";
@@ -958,6 +970,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		102CA4DE2B3E691F00C3DA2E /* LaunchAtLogin */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 102CA4DD2B3E691F00C3DA2E /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */;
+			productName = LaunchAtLogin;
+		};
 		969F3EFE2B3A8C4D0085787B /* HotKey */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 969F3EFD2B3A8C4D0085787B /* XCRemoteSwiftPackageReference "HotKey" */;

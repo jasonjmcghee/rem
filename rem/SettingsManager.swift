@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import LaunchAtLogin
 
 // The settings structure
 struct AppSettings: Codable {
@@ -48,6 +49,7 @@ struct SettingsView: View {
             Form {
                 Toggle("Remember everything copied to clipboard", isOn: $settingsManager.settings.saveEverythingCopiedToClipboard)
                     .onChange(of: settingsManager.settings.saveEverythingCopiedToClipboard) { settingsManager.saveSettings() }
+                LaunchAtLogin.Toggle("Launch at login 🦄")
             }
         }
         .padding()
