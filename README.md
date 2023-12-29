@@ -13,9 +13,9 @@ _Note: Only tested on Apple Silicon, and the release is Apple Silicon._
 
 ---
 
-Please log any bugs / issues you find!
+### This is crazy alpha version
 
-Working on getting the build code signed / official... fighting with hardened runtime + bundled ffmpeg.
+Please log any bugs / issues you find!
 
 Looking at this code and grimacing? Want to help turn this project into something awesome? Please contribute. I haven't written Swift since 2017. I'm sure you'll write better code than me.
 
@@ -29,11 +29,6 @@ so we know for certain that nothing is leaving your laptop. Even logging to Sent
 leak private info.
 
 This is 100% local. Please, read the code yourself.
-
-### This is crazy alpha version
-
-I wrote this in a couple days over the holidays, and if there's one takeaway, it's that I'm a
-complete novice at Swift.
 
 ## Build it yourself
 
@@ -62,16 +57,19 @@ complete novice at Swift.
 
 (that should be all that's needed)
 
-## Current supports:
+## Currently supports:
 - Going back in time (full-screen scrubber of everything you've viewed)
 - Copy text from back in time
 - Search everything you've viewed
 - Easily grab recent context for use with LLMs
 
 ## Things I'd love to add:
-- Natural language search / agent interaction via updating local vector embedding
+- [ ] Natural language search / agent interaction via updating local vector embedding
     - [I've also been exploring novel approaches to vector dbs](https://github.com/jasonjmcghee/portable-hnsw)
-- Multi-monitor support
+- [ ] Novel search experiences like spatial / similar images
+- [ ] Search filters (by app, time, etc.)
+- [ ] Fine-grained purging / trimming / selecting recording
+- [ ] Multi-monitor support
 
 ## Contributors ✨
 <a href="https://github.com/jasonjmcghee/rem/graphs/contributors">
