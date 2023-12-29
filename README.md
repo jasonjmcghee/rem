@@ -35,7 +35,7 @@ complete novice at Swift.
 
 ## Build it yourself
 
-- Clone the repo `git clone --recursive -j8 https://github.com/jasonjmcghee/rem.git`
+- Clone the repo `git clone --recursive -j8 https://github.com/jasonjmcghee/rem.git` or run `git submodule update --init --recursive` after cloning
 - Open project in Xcode
 - Change default SQLite.Swift sdk archiecture to macOS <img width="1512" alt="Screenshot 2023-12-28 at 5 38 19 PM" src="https://github.com/ruslanjabari/rem/assets/59275080/63c08975-0bd2-4fe8-91ca-0b9406d44704">
 - Product > Archive
