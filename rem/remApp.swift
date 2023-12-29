@@ -333,15 +333,22 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         imageBufferQueue.async(flags: .barrier) { [weak self] in
             guard let strongSelf = self else { return }
-            strongSelf.imageDataBuffer.append(data)
             
-            // If the buffer reaches the threshold, process the chunk
+            strongSelf.imageDataBuffer.append(data)
+
+            // Quickly move the images to a temporary buffer if the threshold is reached
+            var tempBuffer: [Data] = []
             if strongSelf.imageDataBuffer.count >= strongSelf.frameThreshold {
-                let chunk = Array(strongSelf.imageDataBuffer.prefix(strongSelf.frameThreshold))
+                tempBuffer = Array(strongSelf.imageDataBuffer.prefix(strongSelf.frameThreshold))
                 strongSelf.imageDataBuffer.removeFirst(strongSelf.frameThreshold)
-                strongSelf.processChunk(chunk)
+            }
+
+            // Process the images outside of the critical section
+            if !tempBuffer.isEmpty {
+                strongSelf.processChunk(tempBuffer)
             }
         }
+
     }
     
     private func processChunk(_ chunk: [Data]) {
@@ -360,10 +367,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             ffmpegProcess.executableURL = URL(fileURLWithPath: ffmpegPath)
             ffmpegProcess.arguments = [
                 "-f", "image2pipe",
+                "-vcodec", "png",
                 "-i", "-",
                 "-color_trc", "iec61966_2_1", // Set transfer characteristics for sRGB (approximates 2.2 gamma)
                 "-c:v", "h264_videotoolbox",
-                "-crf", "25",
+                "-q:v", "25",
                 outputPath
             ]
             let ffmpegInputPipe = Pipe()

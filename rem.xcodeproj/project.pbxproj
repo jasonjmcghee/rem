@@ -14,19 +14,18 @@
 		961C95EC2B2E19B40093F228 /* remTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961C95EB2B2E19B40093F228 /* remTests.swift */; };
 		961C95F62B2E19B40093F228 /* remUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961C95F52B2E19B40093F228 /* remUITests.swift */; };
 		961C95F82B2E19B40093F228 /* remUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961C95F72B2E19B40093F228 /* remUITestsLaunchTests.swift */; };
-		961C960F2B2E73840093F228 /* ffmpeg in Resources */ = {isa = PBXBuildFile; fileRef = 961C960D2B2E73840093F228 /* ffmpeg */; };
-		961C96102B2E73B00093F228 /* ffmpeg in CopyFiles */ = {isa = PBXBuildFile; fileRef = 961C960D2B2E73840093F228 /* ffmpeg */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		961C96132B2EB7DB0093F228 /* TimelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961C96122B2EB7DB0093F228 /* TimelineView.swift */; };
 		961C96152B2EBEE50093F228 /* DB.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961C96142B2EBEE50093F228 /* DB.swift */; };
 		969BA2EC2B3D1D46009EE9C6 /* SettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 969BA2EB2B3D1D46009EE9C6 /* SettingsManager.swift */; };
 		969F3EFF2B3A8C4D0085787B /* HotKey in Frameworks */ = {isa = PBXBuildFile; productRef = 969F3EFE2B3A8C4D0085787B /* HotKey */; };
-		969F3F052B3B70560085787B /* SQLite.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 96E66BBF2B2F5745006E1E97 /* SQLite.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		969F3F082B3B7C7C0085787B /* RemFileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 969F3F072B3B7C7C0085787B /* RemFileManager.swift */; };
 		969F3F0B2B3CB2110085787B /* Field.swift in Sources */ = {isa = PBXBuildFile; fileRef = 969F3F0A2B3CB2110085787B /* Field.swift */; };
 		969F3F0D2B3CCEC30085787B /* Ask.swift in Sources */ = {isa = PBXBuildFile; fileRef = 969F3F0C2B3CCEC30085787B /* Ask.swift */; };
 		96B0DA382B3A02530030E8AE /* ClipboardManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96B0DA372B3A02530030E8AE /* ClipboardManager.swift */; };
 		96B0DA3A2B3A08280030E8AE /* TextMerger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96B0DA392B3A08280030E8AE /* TextMerger.swift */; };
 		96B0DA3D2B3A87110030E8AE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 961C95DD2B2E19B40093F228 /* Assets.xcassets */; };
+		96DBA3182B3E7D3B0000CFBE /* SQLite.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 96E66BC32B2F5745006E1E97 /* SQLite.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		96DBA31C2B3E991B0000CFBE /* ffmpeg in Resources */ = {isa = PBXBuildFile; fileRef = 961C960D2B2E73840093F228 /* ffmpeg */; };
 		96F062182B35111D00695621 /* Search.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96F062172B35111D00695621 /* Search.swift */; };
 /* End PBXBuildFile section */
 
@@ -152,7 +151,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 6;
 			files = (
-				961C96102B2E73B00093F228 /* ffmpeg in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -162,7 +160,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				969F3F052B3B70560085787B /* SQLite.framework in Embed Frameworks */,
+				96DBA3182B3E7D3B0000CFBE /* SQLite.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -344,10 +342,10 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 961C95FB2B2E19B40093F228 /* Build configuration list for PBXNativeTarget "rem" */;
 			buildPhases = (
+				961C96092B2E71AB0093F228 /* CopyFiles */,
 				961C95D22B2E19B30093F228 /* Sources */,
 				961C95D32B2E19B30093F228 /* Frameworks */,
 				961C95D42B2E19B30093F228 /* Resources */,
-				961C96092B2E71AB0093F228 /* CopyFiles */,
 				969F3F062B3B70570085787B /* Embed Frameworks */,
 			);
 			buildRules = (
@@ -560,9 +558,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				96DBA31C2B3E991B0000CFBE /* ffmpeg in Resources */,
 				961C95E12B2E19B40093F228 /* Preview Assets.xcassets in Resources */,
 				96B0DA3D2B3A87110030E8AE /* Assets.xcassets in Resources */,
-				961C960F2B2E73840093F228 /* ffmpeg in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
