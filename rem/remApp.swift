@@ -160,6 +160,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             menu.addItem(NSMenuItem(title: "Search", action: #selector(self.showSearchView), keyEquivalent: ""))
             menu.addItem(NSMenuItem(title: "Copy Recent Context", action: #selector(self.copyRecentContext), keyEquivalent: ""))
             menu.addItem(NSMenuItem.separator()) // Separator
+            menu.addItem(NSMenuItem(title: "Show Me My Data", action: #selector(self.showMeMyData), keyEquivalent: ""))
             menu.addItem(NSMenuItem(title: "⚠️ Purge All Data ⚠️", action: #selector(self.confirmPurgeAllData), keyEquivalent: ""))
             menu.addItem(NSMenuItem.separator()) // Separator
             menu.addItem(
@@ -172,6 +173,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
     
+    @objc func showMeMyData() {
+        if let saveDir = RemFileManager.shared.getSaveDir() {
+            NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: saveDir.path)
+        }
+    }
+
     @objc func toggleTimeline() {
         if self.isTimelineOpen() {
             self.closeTimelineView()
