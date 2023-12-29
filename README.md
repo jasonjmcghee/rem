@@ -30,15 +30,7 @@ leak private info.
 
 This is 100% local. Please, read the code yourself.
 
-## Build it yourself
-
-- Clone the repo `git clone --recursive -j8 https://github.com/jasonjmcghee/rem.git` or run `git submodule update --init --recursive` after cloning
-- Open project in Xcode
-- Change default SQLite.Swift sdk archiecture to macOS <img width="1512" alt="Screenshot 2023-12-28 at 5 38 19 PM" src="https://github.com/ruslanjabari/rem/assets/59275080/63c08975-0bd2-4fe8-91ca-0b9406d44704">
-- Product > Archive
-- Distribute App
-- Custom
-- Copy App
+Also, that means is no tracking / analytics of any kind, which means I don't know you're running into bugs when you do. So please report any / all you find!
 
 ## Getting Started
 
@@ -53,9 +45,20 @@ This is 100% local. Please, read the code yourself.
     - Search your history and click on a thumbnail to go there in the timeline
 - In timeline, give Live Text a second and then you can select text
 - Click "Copy Recent Context" to grab a prompt for interacting with an LLM with what you've seen recently as context
+- Click "Show Me My Data" to open a finder window where `rem` stores SQLite db + video recordings
 - Click "Purge All Data" to delete everything (useful if something breaks)
 
 (that should be all that's needed)
+
+## Build it yourself
+
+- Clone the repo `git clone --recursive -j8 https://github.com/jasonjmcghee/rem.git` or run `git submodule update --init --recursive` after cloning
+- Open project in Xcode
+- Change default SQLite.Swift sdk archiecture to macOS <img width="1512" alt="Screenshot 2023-12-28 at 5 38 19 PM" src="https://github.com/ruslanjabari/rem/assets/59275080/63c08975-0bd2-4fe8-91ca-0b9406d44704">
+- Product > Archive
+- Distribute App
+- Custom
+- Copy App
 
 ## Currently supports:
 - Going back in time (full-screen scrubber of everything you've viewed)
@@ -78,8 +81,9 @@ This is 100% local. Please, read the code yourself.
 
 ### FAQ
 - Where is my data?
+    - Click "Show Me My Data" in the tray / status icon menu
+    - Currently it is stored in: `~/Library/Containers/today.jason.rem/Data/Library/Application Support/today.jason.rem`
     - It was originally: `~/Library/Application\ Support/today.jason.rem/`
-    - After turning on app sandbox, appears to now be in: `~/Library/Containers/today.jason.rem/Data/Library/Application Support/today.jason.rem`
 
 ### XCode + copy / paste from history:
 
