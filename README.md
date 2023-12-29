@@ -47,7 +47,7 @@ complete novice at Swift.
 
 ## Getting Started
 
-- Download `0.1.4` or later (previous are unsigned), or build it yourself!
+- [Download the latest release](https://github.com/jasonjmcghee/rem/releases/tag/v0.1.4), or build it yourself!
 - Launch the app
 - Click the brain
 - Click "Start Remembering"
