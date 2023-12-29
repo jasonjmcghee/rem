@@ -75,7 +75,9 @@ complete novice at Swift.
 - Multi-monitor support
 
 ## Contributors ✨
-Be the first!
+<a href="https://github.com/jasonjmcghee/rem/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=jasonjmcghee/rem" />
+</a>
 
 ### FAQ
 - Where is my data?
