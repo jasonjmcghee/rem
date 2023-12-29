@@ -360,11 +360,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             
             // Setup the FFmpeg process for the chunk
             let ffmpegProcess = Process()
-            guard let ffmpegPath = Bundle.main.path(forResource: "ffmpeg", ofType: "") else {
-                print("FFmpeg binary not found in the bundle.")
-                return
-            }
-            ffmpegProcess.executableURL = URL(fileURLWithPath: ffmpegPath)
+            let bundleURL = Bundle.main.bundleURL
+            ffmpegProcess.executableURL = bundleURL.appendingPathComponent("Contents/MacOS/ffmpeg")
             ffmpegProcess.arguments = [
                 "-f", "image2pipe",
                 "-vcodec", "png",

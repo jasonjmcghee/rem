@@ -25,7 +25,8 @@
 		96B0DA3A2B3A08280030E8AE /* TextMerger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96B0DA392B3A08280030E8AE /* TextMerger.swift */; };
 		96B0DA3D2B3A87110030E8AE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 961C95DD2B2E19B40093F228 /* Assets.xcassets */; };
 		96DBA3182B3E7D3B0000CFBE /* SQLite.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 96E66BC32B2F5745006E1E97 /* SQLite.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		96DBA31C2B3E991B0000CFBE /* ffmpeg in Resources */ = {isa = PBXBuildFile; fileRef = 961C960D2B2E73840093F228 /* ffmpeg */; };
+		96DBA3362B3F29C40000CFBE /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96DBA3352B3F29C40000CFBE /* main.swift */; };
+		96DBA33D2B3F2AC30000CFBE /* ffmpeg in Embed Helper Tools */ = {isa = PBXBuildFile; fileRef = 961C960D2B2E73840093F228 /* ffmpeg */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		96F062182B35111D00695621 /* Search.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96F062172B35111D00695621 /* Search.swift */; };
 /* End PBXBuildFile section */
 
@@ -43,6 +44,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 961C95D52B2E19B30093F228;
 			remoteInfo = rem;
+		};
+		96DBA33B2B3F2A970000CFBE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 961C95CE2B2E19B30093F228 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 96DBA3322B3F29C30000CFBE;
+			remoteInfo = ffmpegX;
 		};
 		96E66BBE2B2F5745006E1E97 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -145,13 +153,15 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		961C96092B2E71AB0093F228 /* CopyFiles */ = {
+		961C96092B2E71AB0093F228 /* Embed Helper Tools */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 6;
 			files = (
+				96DBA33D2B3F2AC30000CFBE /* ffmpeg in Embed Helper Tools */,
 			);
+			name = "Embed Helper Tools";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		969F3F062B3B70570085787B /* Embed Frameworks */ = {
@@ -164,6 +174,16 @@
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
+		};
+		96DBA3312B3F29C30000CFBE /* Copy Files */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			name = "Copy Files";
+			runOnlyForDeploymentPostprocessing = 1;
 		};
 /* End PBXCopyFilesBuildPhase section */
 
@@ -189,6 +209,9 @@
 		969F3F0C2B3CCEC30085787B /* Ask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Ask.swift; sourceTree = "<group>"; };
 		96B0DA372B3A02530030E8AE /* ClipboardManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardManager.swift; sourceTree = "<group>"; };
 		96B0DA392B3A08280030E8AE /* TextMerger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextMerger.swift; sourceTree = "<group>"; };
+		96DBA3332B3F29C40000CFBE /* ffmpegX */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = ffmpegX; sourceTree = BUILT_PRODUCTS_DIR; };
+		96DBA3352B3F29C40000CFBE /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		96DBA33E2B3F2AFF0000CFBE /* ffmpegX.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ffmpegX.entitlements; sourceTree = "<group>"; };
 		96E66BB42B2F5745006E1E97 /* SQLite.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SQLite.xcodeproj; path = ./SQLite.swift/SQLite.xcodeproj; sourceTree = "<group>"; };
 		96E66BCC2B2F574D006E1E97 /* SQLite.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SQLite.xcodeproj; path = ./SQLite.swift/SQLite.xcodeproj; sourceTree = "<group>"; };
 		96F062172B35111D00695621 /* Search.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Search.swift; sourceTree = "<group>"; };
@@ -218,6 +241,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		96DBA3302B3F29C30000CFBE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -229,6 +259,7 @@
 				961C95D82B2E19B30093F228 /* rem */,
 				961C95EA2B2E19B40093F228 /* remTests */,
 				961C95F42B2E19B40093F228 /* remUITests */,
+				96DBA3342B3F29C40000CFBE /* ffmpegX */,
 				961C95D72B2E19B30093F228 /* Products */,
 				96E66BE42B2F5781006E1E97 /* Frameworks */,
 			);
@@ -240,6 +271,7 @@
 				961C95D62B2E19B30093F228 /* rem.app */,
 				961C95E72B2E19B40093F228 /* remTests.xctest */,
 				961C95F12B2E19B40093F228 /* remUITests.xctest */,
+				96DBA3332B3F29C40000CFBE /* ffmpegX */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -300,6 +332,15 @@
 			path = Resources;
 			sourceTree = "<group>";
 		};
+		96DBA3342B3F29C40000CFBE /* ffmpegX */ = {
+			isa = PBXGroup;
+			children = (
+				96DBA33E2B3F2AFF0000CFBE /* ffmpegX.entitlements */,
+				96DBA3352B3F29C40000CFBE /* main.swift */,
+			);
+			path = ffmpegX;
+			sourceTree = "<group>";
+		};
 		96E66BB52B2F5745006E1E97 /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -342,7 +383,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 961C95FB2B2E19B40093F228 /* Build configuration list for PBXNativeTarget "rem" */;
 			buildPhases = (
-				961C96092B2E71AB0093F228 /* CopyFiles */,
+				961C96092B2E71AB0093F228 /* Embed Helper Tools */,
 				961C95D22B2E19B30093F228 /* Sources */,
 				961C95D32B2E19B30093F228 /* Frameworks */,
 				961C95D42B2E19B30093F228 /* Resources */,
@@ -351,6 +392,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				96DBA33C2B3F2A970000CFBE /* PBXTargetDependency */,
 			);
 			name = rem;
 			packageProductDependencies = (
@@ -396,6 +438,23 @@
 			productReference = 961C95F12B2E19B40093F228 /* remUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		96DBA3322B3F29C30000CFBE /* ffmpegX */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 96DBA3372B3F29C40000CFBE /* Build configuration list for PBXNativeTarget "ffmpegX" */;
+			buildPhases = (
+				96DBA32F2B3F29C30000CFBE /* Sources */,
+				96DBA3302B3F29C30000CFBE /* Frameworks */,
+				96DBA3312B3F29C30000CFBE /* Copy Files */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ffmpegX;
+			productName = ffmpegX;
+			productReference = 96DBA3332B3F29C40000CFBE /* ffmpegX */;
+			productType = "com.apple.product-type.tool";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -403,7 +462,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1410;
+				LastSwiftUpdateCheck = 1510;
 				LastUpgradeCheck = 1410;
 				TargetAttributes = {
 					961C95D52B2E19B30093F228 = {
@@ -416,6 +475,9 @@
 					961C95F02B2E19B40093F228 = {
 						CreatedOnToolsVersion = 14.1;
 						TestTargetID = 961C95D52B2E19B30093F228;
+					};
+					96DBA3322B3F29C30000CFBE = {
+						CreatedOnToolsVersion = 15.1;
 					};
 				};
 			};
@@ -448,6 +510,7 @@
 				961C95D52B2E19B30093F228 /* rem */,
 				961C95E62B2E19B40093F228 /* remTests */,
 				961C95F02B2E19B40093F228 /* remUITests */,
+				96DBA3322B3F29C30000CFBE /* ffmpegX */,
 			);
 		};
 /* End PBXProject section */
@@ -558,7 +621,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				96DBA31C2B3E991B0000CFBE /* ffmpeg in Resources */,
 				961C95E12B2E19B40093F228 /* Preview Assets.xcassets in Resources */,
 				96B0DA3D2B3A87110030E8AE /* Assets.xcassets in Resources */,
 			);
@@ -616,6 +678,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		96DBA32F2B3F29C30000CFBE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				96DBA3362B3F29C40000CFBE /* main.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -628,6 +698,11 @@
 			isa = PBXTargetDependency;
 			target = 961C95D52B2E19B30093F228 /* rem */;
 			targetProxy = 961C95F22B2E19B40093F228 /* PBXContainerItemProxy */;
+		};
+		96DBA33C2B3F2A970000CFBE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 96DBA3322B3F29C30000CFBE /* ffmpegX */;
+			targetProxy = 96DBA33B2B3F2A970000CFBE /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -765,12 +840,11 @@
 				CODE_SIGN_ENTITLEMENTS = rem/rem.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
-				CODE_SIGN_STYLE = Manual;
+				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"rem/Preview Content\"";
-				DEVELOPMENT_TEAM = "";
-				"DEVELOPMENT_TEAM[sdk=macosx*]" = XK2A33Z623;
+				DEVELOPMENT_TEAM = XK2A33Z623;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -802,12 +876,11 @@
 				CODE_SIGN_ENTITLEMENTS = rem/rem.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
-				CODE_SIGN_STYLE = Manual;
+				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"rem/Preview Content\"";
-				DEVELOPMENT_TEAM = "";
-				"DEVELOPMENT_TEAM[sdk=macosx*]" = XK2A33Z623;
+				DEVELOPMENT_TEAM = XK2A33Z623;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -903,6 +976,48 @@
 			};
 			name = Release;
 		};
+		96DBA3382B3F29C40000CFBE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CODE_SIGN_ENTITLEMENTS = ffmpegX/ffmpegX.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = XK2A33Z623;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = today.jason.rem.ffmpegX;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		96DBA3392B3F29C40000CFBE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CODE_SIGN_ENTITLEMENTS = ffmpegX/ffmpegX.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = XK2A33Z623;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
+				PRODUCT_BUNDLE_IDENTIFIER = today.jason.rem.ffmpegX;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -938,6 +1053,15 @@
 			buildConfigurations = (
 				961C96022B2E19B40093F228 /* Debug */,
 				961C96032B2E19B40093F228 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		96DBA3372B3F29C40000CFBE /* Build configuration list for PBXNativeTarget "ffmpegX" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				96DBA3382B3F29C40000CFBE /* Debug */,
+				96DBA3392B3F29C40000CFBE /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
