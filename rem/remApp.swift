@@ -56,6 +56,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     let idleStatusImage = NSImage(named: "StatusIdle")
     let recordingStatusImage = NSImage(named: "StatusRecording")
+    let idleStatusImageDark = NSImage(named: "StatusIdleDark")
+    let recordingStatusImageDark = NSImage(named: "StatusRecordingDark")
     
     let ocrQueue = DispatchQueue(label: "today.jason.ocrQueue", attributes: .concurrent)
     var imageBufferQueue = DispatchQueue(label: "today.jason.imageBufferQueue", attributes: .concurrent)
@@ -63,6 +65,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     var ffmpegTimer: Timer?
     var screenshotTimer: Timer?
+    
+    var observer: NSKeyValueObservation?
         
     private let frameThreshold = 30 // Number of frames after which FFmpeg processing is triggered
     private var ffmpegProcess: Process?
@@ -87,6 +91,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Setup Menu
         setupMenu()
+        
+        self.observer = self.statusBarItem.button?.observe(\.effectiveAppearance) { _, _ in
+            self.setupMenu()
+        }
         
         // Monitor for scroll events
         NSEvent.addGlobalMonitorForEvents(matching: .scrollWheel) { [weak self] (event) in
@@ -149,7 +157,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func setupMenu() {
         DispatchQueue.main.async {
             if let button = self.statusBarItem.button {
-                button.image = self.isCapturing == .recording ? self.recordingStatusImage : self.idleStatusImage
+                let appearenceName = button.effectiveAppearance.name
+                let darkMode = appearenceName.rawValue.lowercased().contains("dark")
+                button.image = self.isCapturing == .recording ? (
+                    darkMode ? self.recordingStatusImageDark : self.recordingStatusImage
+                ) : (
+                    darkMode ? self.idleStatusImageDark : self.idleStatusImage
+                )
                 button.action = #selector(self.togglePopover(_:))
             }
             let menu = NSMenu()
