@@ -47,8 +47,7 @@ complete novice at Swift.
 
 ## Getting Started
 
-- Build it yourself
-  - If you really don't want to, download release and run `xattr -c rem.app`. This tells macos "all good". I'm not malicious, but don't take my word for it.
+- Download `0.1.4` or later (previous are unsigned), or build it yourself!
 - Launch the app
 - Click the brain
 - Click "Start Remembering"
