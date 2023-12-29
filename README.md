@@ -15,7 +15,9 @@ _Note: Only tested on Apple Silicon, and the release is Apple Silicon._
 
 Please log any bugs / issues you find!
 
-Working on getting an Apple Development account for official distribution...
+Working on getting the build code signed / official... fighting with hardened runtime + bundled ffmpeg.
+
+Looking at this code and grimacing? Want to help turn this project into something awesome? Please contribute. I haven't written Swift since 2017. I'm sure you'll write better code than me.
 
 ---
 
