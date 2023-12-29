@@ -1,3 +1,4 @@
 [submodule "SQLite.swift"]
 	path = SQLite.swift
 	url = https://github.com/stephencelis/SQLite.swift
+	branch = master
