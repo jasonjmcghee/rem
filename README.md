@@ -81,7 +81,8 @@ complete novice at Swift.
 
 ### FAQ
 - Where is my data?
-    - `~/Library/Application\ Support/today.jason.rem/`
+    - It was originally: `~/Library/Application\ Support/today.jason.rem/`
+    - After turning on app sandbox, appears to now be in: `~/Library/Containers/today.jason.rem/Data/Library/Application Support/today.jason.rem`
 
 ### XCode + copy / paste from history:
 
