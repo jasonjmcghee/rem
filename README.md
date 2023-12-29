@@ -19,28 +19,32 @@ Working on getting an Apple Development account for official distribution...
 
 ---
 
-I think the idea of recording everything you see has the potential to change how we interact 
+I think the idea of recording everything you see has the potential to change how we interact
 with our computers, and believe it should be open source.
 
-Also, from a privacy / security perspective, this is like... pretty scary stuff, and I want the code open 
-so we know for certain that nothing is leaving your laptop. Even logging to Sentry has the potential to 
+Also, from a privacy / security perspective, this is like... pretty scary stuff, and I want the code open
+so we know for certain that nothing is leaving your laptop. Even logging to Sentry has the potential to
 leak private info.
 
 This is 100% local. Please, read the code yourself.
 
 ### This is crazy alpha version
+
 I wrote this in a couple days over the holidays, and if there's one takeaway, it's that I'm a
 complete novice at Swift.
 
 ## Build it yourself
+
+- Clone the repo `git clone --recursive -j8 https://github.com/jasonjmcghee/rem.git`
 - Open project in Xcode
-- Clone `https://github.com/stephencelis/SQLite.swift` and add it to the project
+- Change default SQLite.Swift sdk archiecture to macOS
 - Product > Archive
 - Distribute App
 - Custom
 - Copy App
 
 ## Getting Started
+
 - Build it yourself
   - If you really don't want to, download release and run `xattr -c rem.app`. This tells macos "all good". I'm not malicious, but don't take my word for it.
 - Launch the app
