@@ -85,6 +85,10 @@ Also, that means is no tracking / analytics of any kind, which means I don't kno
     - Currently it is stored in: `~/Library/Containers/today.jason.rem/Data/Library/Application Support/today.jason.rem`
     - It was originally: `~/Library/Application\ Support/today.jason.rem/`
 
+### (Never)AQ
+- Wow that logo is so great, you're an artist. Can I see your figma?
+    - So nice of you to say, sure [here it is](https://www.figma.com/file/Rr2vUXjsRb9SJMssQbEllA/rem-icons?type=design&node-id=0%3A1&mode=design&t=QhtJ7L1z4rIXTG4M-1)
+
 ### XCode + copy / paste from history:
 
 https://github.com/jasonjmcghee/rem/assets/1522149/97acacb9-b8c6-4b9c-b452-5423fb4e4372
