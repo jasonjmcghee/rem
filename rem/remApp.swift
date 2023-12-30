@@ -11,6 +11,7 @@ import ScreenCaptureKit
 import Vision
 import VisionKit
 import CoreGraphics
+import os
 
 final class MainWindow: NSWindow {
     override var canBecomeKey: Bool {
@@ -35,6 +36,10 @@ struct remApp: App {
 }
 
 class AppDelegate: NSObject, NSApplicationDelegate {
+    private let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier!,
+        category: String(describing: AppDelegate.self)
+    )
     var timelineViewWindow: NSWindow?
     var timelineView: TimelineView?
     
@@ -270,7 +275,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 self?.scheduleScreenshot(shareableContent: shareableContent)
             }
         } catch {
-            print("Error starting screen capture: \(error.localizedDescription)")
+            logger.error("Error starting screen capture: \(error.localizedDescription)")
         }
     }
     
@@ -319,10 +324,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                         }
                     }
                 } catch {
-                    print("Error deleting folder: \(error)")
+                    logger.error("Error deleting folder: \(error)")
                 }
             } else {
-                print("Error finding folder.")
+                logger.error("Error finding folder.")
             }
         }
         DatabaseManager.shared.purge()
@@ -331,13 +336,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func stopScreenCapture() {
         isCapturing = .stopped
         self.timelineView?.viewModel.setIndexToLatest()
-        print("Screen capture stopped")
+        logger.info("Screen capture stopped")
     }
     
     func pauseScreenCapture() {
         isCapturing = .paused
         self.timelineView?.viewModel.setIndexToLatest()
-        print("Screen capture paused")
+        logger.info("Screen capture paused")
     }
     
 //    // Old method
@@ -411,7 +416,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             do {
                 try ffmpegProcess.run()
             } catch {
-                print("Failed to start FFmpeg process for chunk: \(error)")
+                logger.error("Failed to start FFmpeg process for chunk: \(error)")
                 return
             }
 
@@ -420,7 +425,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 do {
                     try ffmpegInputPipe.fileHandleForWriting.write(contentsOf: data)
                 } catch {
-                    print("Error writing to FFmpeg process: \(error)")
+                    logger.error("Error writing to FFmpeg process: \(error)")
                     break
                 }
             }
@@ -432,13 +437,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             let outputData = ffmpegOutputPipe.fileHandleForReading.readDataToEndOfFile()
             let errorData = ffmpegErrorPipe.fileHandleForReading.readDataToEndOfFile()
             if let output = String(data: outputData, encoding: .utf8) {
-                print("FFmpeg Output: \(output)")
+                logger.info("FFmpeg (stdout pipe): \(output)")
             }
+            // Not differentiating as ffmpeg is outputting standard output on error pipe?
             if let errorOutput = String(data: errorData, encoding: .utf8) {
-                print("FFmpeg Error: \(errorOutput)")
+                logger.info("FFmpeg (stderror pipe): \(errorOutput)")
             }
         } else {
-            print("Failed to save ffmpeg video")
+            logger.error("Failed to save ffmpeg video")
         }
     }
 
@@ -512,7 +518,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     DatabaseManager.shared.insertTextForFrame(frameId: frameId, text: cleanText)
                     // print(textToAssociate)
                 } catch {
-                    print("OCR error: \(error.localizedDescription)")
+                    self.logger.error("OCR error: \(error.localizedDescription)")
                 }
             }
             
@@ -542,18 +548,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 //                print("Failed to perform OCR: \(error.localizedDescription)")
 //            }
         }
-    }
-
-    private func saveOCRResult(_ text: String, forImageURL imageURL: URL) {
-        // Here you can save the OCR results along with the image URL to the database
-        // For simplicity, we're just printing it
-        print("OCR Result for \(imageURL.lastPathComponent): \(text)")
-    }
-    
-    func windowWillClose(_ notification: Notification) {
-        // Here you can take action when a window closes
-        print("Window is closing")
-        // Add your custom action here
     }
     
     private func processImageDataBuffer() {

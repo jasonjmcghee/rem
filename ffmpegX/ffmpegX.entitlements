@@ -4,12 +4,6 @@
   <dict>
   <key>com.apple.security.app-sandbox</key>
   <true/>
-  <key>com.apple.security.temporary-exception.files.absolute-path.read-only</key>
-  <array>
-      <string>/usr/lib/libSystem.B.dylib</string>
-      <string>/usr/lib/libz.1.dylib</string>
-      <string>/usr/lib/libiconv.2.dylib</string>
-  </array>
 	<key>com.apple.security.inherit</key>
 	<true/>
   </dict>

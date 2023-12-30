@@ -2,8 +2,13 @@
 import SwiftUI
 import AVFoundation
 import VisionKit
+import os
 
 struct TimelineView: View {
+    private let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier!,
+        category: String(describing: TimelineView.self)
+    )
     @ObservedObject var viewModel: TimelineViewModel
     @State private var imageAnalysis: ImageAnalysis?
     @State private var frame: NSRect
@@ -70,7 +75,7 @@ struct TimelineView: View {
                         // print("Analysis successful: \(analysis.transcript)")
                     }
                 } catch {
-                    print("Error analyzing image: \(error)")
+                    logger.error("Error analyzing image: \(error)")
                 }
             }
         }
@@ -81,12 +86,12 @@ struct TimelineView: View {
     func pngData(from nsImage: NSImage) -> Data? {
         guard let tiffRepresentation = nsImage.tiffRepresentation,
               let bitmapImage = NSBitmapImageRep(data: tiffRepresentation) else {
-            print("Failed to get TIFF representation of NSImage")
+            logger.error("Failed to get TIFF representation of NSImage")
             return nil
         }
         
         guard let pngData = bitmapImage.representation(using: .png, properties: [:]) else {
-            print("Failed to convert NSImage to PNG")
+            logger.error("Failed to convert NSImage to PNG")
             return nil
         }
         
@@ -100,12 +105,12 @@ struct TimelineView: View {
                 let outputPath = savedir.appendingPathComponent("\(path).png").path
                 let fileURL = URL(fileURLWithPath: outputPath)
                 try pngData?.write(to: fileURL)
-                print("PNG file written successfully")
+                logger.info("PNG file written successfully")
             } else {
-                print("Error writing PNG file")
+                logger.error("Error writing PNG file")
             }
         } catch {
-            print("Error writing PNG file: \(error)")
+            logger.error("Error writing PNG file: \(error)")
         }
     }
 }

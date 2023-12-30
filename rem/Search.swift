@@ -1,5 +1,6 @@
 import SwiftUI
 import Combine
+import os
 
 struct SearchView: View {
     var onThumbnailClick: (Int64) -> Void  // Closure to handle thumbnail click
@@ -245,6 +246,10 @@ struct SearchResultView: View {
 
 
 struct ResultsView: View {
+    private let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier!,
+        category: String(describing: ResultsView.self)
+    )
     @State private var isLoadingMore = false
     @State var searchText: String = ""
     @State private var searchResults: [SearchResult] = []
@@ -355,7 +360,8 @@ struct ResultsView: View {
                     }
                     count += 1
                 case .failure(let requestedTime, let error):
-                    print("Failed to load image for time \(requestedTime): \(error)")
+                    let offset = Int64(requestedTime.seconds * fps)
+                    logger.error("Failed to load image for time \(offset): \(error)")
                 }
             }
         }
