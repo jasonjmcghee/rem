@@ -30,7 +30,7 @@ leak private info.
 
 This is 100% local. Please, read the code yourself.
 
-Also, that means is no tracking / analytics of any kind, which means I don't know you're running into bugs when you do. So please report any / all you find!
+Also, that means there is no tracking / analytics of any kind, which means I don't know you're running into bugs when you do. So please report any / all you find!
 
 ## Getting Started
 
