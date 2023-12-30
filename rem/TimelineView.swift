@@ -14,12 +14,14 @@ struct TimelineView: View {
     let overlayView = ImageAnalysisOverlayView()
     private let imageAnalyzer = ImageAnalyzer()
     
+    var settingsManager: SettingsManager
     var onClose: () -> Void  // Closure to handle thumbnail click
 
     private var fps: Int32 = 25
     
-    init(viewModel: TimelineViewModel, onClose: @escaping () -> Void) {
+    init(viewModel: TimelineViewModel, settingsManager: SettingsManager, onClose: @escaping () -> Void) {
         self.viewModel = viewModel
+        self.settingsManager = settingsManager
         self.onClose = onClose
         _frame = State(initialValue: NSScreen.main?.visibleFrame ?? NSRect.zero)
         _customHostingView = State(initialValue: nil)
@@ -30,7 +32,7 @@ struct TimelineView: View {
             let index = viewModel.currentFrameIndex
             if let image = DatabaseManager.shared.getImage(index: index) {
                 let nsImage = NSImage(cgImage: image, size: NSSize(width: image.width, height: image.width))
-                CustomHostingControllerRepresentable(onClose: onClose, image: nsImage, analysis: $imageAnalysis, frame: frame)
+                CustomHostingControllerRepresentable(settingsManager: settingsManager, onClose: onClose, image: nsImage, analysis: $imageAnalysis, frame: frame)
                     .frame(width: frame.width, height: frame.height)
                     .ignoresSafeArea(.all)
                     .onChange(of: viewModel.currentFrameIndex) {
@@ -169,6 +171,7 @@ class CustomHostingView: NSHostingView<AnyView> {
 }
 
 struct CustomHostingControllerRepresentable: NSViewControllerRepresentable {
+    var settingsManager: SettingsManager
     var onClose: () -> Void  // Closure to handle thumbnail click
     var image: NSImage
     @Binding var analysis: ImageAnalysis?
@@ -177,6 +180,7 @@ struct CustomHostingControllerRepresentable: NSViewControllerRepresentable {
     func makeNSViewController(context: Context) -> CustomHostingViewController {
         let viewController = CustomHostingViewController()
         viewController.onClose = onClose
+        viewController.settingsManager = settingsManager
         viewController.updateImage(image, frame: frame)
         return viewController
     }
@@ -185,10 +189,12 @@ struct CustomHostingControllerRepresentable: NSViewControllerRepresentable {
         nsViewController.updateImage(image, frame: frame)
         nsViewController.updateAnalysis(analysis)
         nsViewController.onClose = onClose
+        nsViewController.settingsManager = settingsManager
     }
 }
 
 class CustomHostingViewController: NSViewController {
+    var settingsManager: SettingsManager?
     var onClose: (() -> Void)?  // Closure to handle thumbnail click
     var customHostingView: CustomHostingView?
     var interceptingView: CustomInterceptingView?
@@ -200,6 +206,7 @@ class CustomHostingViewController: NSViewController {
     override func loadView() {
         let _interceptingView = CustomInterceptingView()
         _interceptingView.onClose = onClose
+        _interceptingView.settingsManager = settingsManager
         self.view = _interceptingView // Basic NSView as a container
         if customHostingView == nil {
             customHostingView = CustomHostingView(image: NSImage(), frame: self.view.bounds)
@@ -227,6 +234,7 @@ class CustomHostingViewController: NSViewController {
 }
 
 class CustomInterceptingView: NSView {
+    var settingsManager: SettingsManager?
     var onClose: (() -> Void)?  // Closure to handle thumbnail click
     weak var customHostingView: CustomHostingView?
     
@@ -258,6 +266,7 @@ class CustomInterceptingView: NSView {
     }
     
     override func scrollWheel(with event: NSEvent) {
+        guard settingsManager?.settings.enableCmdScrollShortcut ?? false else { return }
         if event.modifierFlags.contains(.command) && event.scrollingDeltaY > 0 {
             self.exit()
         }

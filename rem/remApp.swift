@@ -239,6 +239,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     private func handleGlobalScrollEvent(_ event: NSEvent) {
+        guard settingsManager.settings.enableCmdScrollShortcut else { return}
         guard event.modifierFlags.contains(.command) else { return }
         
         if event.scrollingDeltaY < 0 && !self.isTimelineOpen() { // Check if scroll up
@@ -579,7 +580,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
             timelineViewWindow?.collectionBehavior = [.fullScreenAuxiliary, .canJoinAllSpaces, .participatesInCycle]
             timelineViewWindow?.ignoresMouseEvents = false
-            timelineView = TimelineView(viewModel: TimelineViewModel(), onClose: {
+            timelineView = TimelineView(viewModel: TimelineViewModel(), settingsManager: settingsManager, onClose: {
                 DispatchQueue.main.async { [weak self] in
                     self?.closeTimelineView()
                 }
