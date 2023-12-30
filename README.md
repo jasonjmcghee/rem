@@ -13,11 +13,14 @@ _Note: Only tested on Apple Silicon, and the release is Apple Silicon._
 
 ---
 
-### This is crazy alpha version
+### This is crazy alpha version (rem could use _your_ help!)
 
 Please log any bugs / issues you find!
 
 Looking at this code and grimacing? Want to help turn this project into something awesome? Please contribute. I haven't written Swift since 2017. I'm sure you'll write better code than me.
+
+Please look at https://github.com/jasonjmcghee/rem/issues/3 and if you _didn't_ experience anything let us know!
+If you can help solve it, please do!
 
 ---
 
