@@ -138,13 +138,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         
         NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { [weak self] (event) in
-            if !event.modifierFlags.contains(.command) && event.scrollingDeltaX != 0 {
-                self?.timelineView?.viewModel.updateIndex(withDelta: event.scrollingDeltaX)
-            }
-            
-            if event.modifierFlags.contains(.command) && event.scrollingDeltaY > 0 && (self?.isTimelineOpen() ?? false) { // Check if scroll up
-                DispatchQueue.main.async { [weak self] in
-                    self?.closeTimelineView()
+            if self?.isTimelineOpen() ?? false {
+                if !event.modifierFlags.contains(.command) && event.scrollingDeltaX != 0 {
+                    self?.timelineView?.viewModel.updateIndex(withDelta: event.scrollingDeltaX)
+                }
+
+                if event.modifierFlags.contains(.command) && event.scrollingDeltaY > 0 && (self?.isTimelineOpen() ?? false) { // Check if scroll up
+                    DispatchQueue.main.async { [weak self] in
+                        self?.closeTimelineView()
+                    }
                 }
             }
             return event
