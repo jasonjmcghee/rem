@@ -14,6 +14,7 @@ import AVFoundation
 class DatabaseManager {
     static let shared = DatabaseManager()
     private var db: Connection
+    static var FPS: CMTimeScale = 25
     
     // Last 15 frames
     let recentFramesThreshold = 15
@@ -146,6 +147,15 @@ class DatabaseManager {
         
         return nil
     }
+    
+    func frameExists(forIndex index: Int64) -> Bool {
+        do {
+            let query = frames.join(videoChunks, on: chunkId == videoChunks[id]).filter(frames[id] == index).exists
+            return try db.scalar(query)
+        } catch {
+            return false
+        }
+    }
 
     // Function to retrieve the file path of a video chunk by its index
     func getVideoChunkPath(byIndex index: Int64) -> String? {
@@ -215,21 +225,24 @@ class DatabaseManager {
         return 0
     }
     
-    func search(searchText: String, limit: Int = 9) -> [(frameId: Int64, fullText: String, applicationName: String?, timestamp: Date)] {
+    func search(searchText: String, limit: Int = 9, offset: Int = 0) -> [(frameId: Int64, fullText: String, applicationName: String?, timestamp: Date, filePath: String, offsetIndex: Int64)] {
         let query = allText
             .join(frames, on: frames[id] == allText[frameId])
+            .join(videoChunks, on: frames[chunkId] == videoChunks[id])
             .filter(self.text.match("*\(searchText)*"))
-            .select(allText[frameId], self.text, frames[activeApplicationName], frames[timestamp])
-            .limit(limit)
+            .select(allText[frameId], self.text, frames[activeApplicationName], frames[timestamp], videoChunks[filePath], frames[offsetIndex])
+            .limit(limit, offset: offset)
 
-        var results: [(Int64, String, String?, Date)] = []
+        var results: [(Int64, String, String?, Date, String, Int64)] = []
         do {
             for row in try db.prepare(query) {
                 let frameId = row[allText[frameId]]
                 let matchedText = row[self.text]
                 let applicationName = row[frames[activeApplicationName]]
                 let timestamp = row[frames[timestamp]]
-                results.append((frameId, matchedText, applicationName, timestamp))
+                let filePath = row[videoChunks[filePath]]
+                let offsetIndex = row[frames[offsetIndex]]
+                results.append((frameId, matchedText, applicationName, timestamp, filePath, offsetIndex))
             }
         } catch {
             print("Search error: \(error)")
@@ -237,20 +250,22 @@ class DatabaseManager {
         return results
     }
     
-    func getRecentResults(limit: Int = 9) -> [(frameId: Int64, fullText: String?, applicationName: String?, timestamp: Date)] {
-        let query = allText
-            .join(frames, on: frames[id] == allText[frameId])
+    func getRecentResults(limit: Int = 9, offset: Int = 0) -> [(frameId: Int64, fullText: String?, applicationName: String?, timestamp: Date, filePath: String, offsetIndex: Int64)] {
+        let query = frames
+            .join(videoChunks, on: frames[chunkId] == videoChunks[id])
+            .select(frames[id], frames[activeApplicationName], frames[timestamp], videoChunks[filePath], frames[offsetIndex])
             .order(frames[timestamp].desc)
-            .limit(limit)
-            .select(allText[frameId], frames[activeApplicationName], frames[timestamp])
+            .limit(limit, offset: offset)
 
-        var results: [(Int64, String?, String?, Date)] = []
+        var results: [(Int64, String?, String?, Date, String, Int64)] = []
         do {
             for row in try db.prepare(query) {
-                let frameId = row[allText[frameId]]
+                let frameId = row[frames[id]]
                 let applicationName = row[frames[activeApplicationName]]
                 let timestamp = row[frames[timestamp]]
-                results.append((frameId, nil, applicationName, timestamp))
+                let filePath = row[videoChunks[filePath]]
+                let offsetIndex = row[frames[offsetIndex]]
+                results.append((frameId, nil, applicationName, timestamp, filePath, offsetIndex))
             }
         } catch {
             print("Error fetching recent results: \(error)")
@@ -258,32 +273,49 @@ class DatabaseManager {
         return results
     }
     
-    func getImage(index: Int64) -> CGImage? {
+    func getImage(index: Int64, maxSize: CGSize? = nil) -> CGImage? {
         guard let frameData = DatabaseManager.shared.getFrame(forIndex: index) else { return nil }
         
         let videoURL = URL(fileURLWithPath: frameData.filePath)
-        if !FileManager.default.fileExists(atPath: videoURL.path) {
-            return nil
-        }
-        
-        return extractFrame(from: videoURL, frameOffset: frameData.offsetIndex)
+        return extractFrame(from: videoURL, frameOffset: frameData.offsetIndex, maxSize: maxSize)
     }
     
-    func extractFrame(from videoURL: URL, frameOffset: Int64) -> CGImage? {
+    func getImages(filePath: String, frameOffsets: [Int64], maxSize: CGSize? = nil) -> AVAssetImageGenerator.Images {
+        let videoURL = URL(fileURLWithPath: filePath)
+        return extractFrames(from: videoURL, frameOffsets: frameOffsets, maxSize: maxSize)
+    }
+    
+    func extractFrame(from videoURL: URL, frameOffset: Int64, maxSize: CGSize? = nil) -> CGImage? {
         let asset = AVURLAsset(url: videoURL)
         let generator = AVAssetImageGenerator(asset: asset)
+        if let maxSize = maxSize {
+            generator.maximumSize = maxSize
+        }
         generator.appliesPreferredTrackTransform = true
         generator.requestedTimeToleranceBefore = CMTime.zero;
         generator.requestedTimeToleranceAfter = CMTime.zero;
         
         do {
-            let a = CMTime(value: frameOffset, timescale: 25)
+            let a = CMTime(value: frameOffset, timescale: DatabaseManager.FPS)
             let aI = try generator.copyCGImage(at: a, actualTime: nil)
             return aI
         } catch {
             print("Error extracting frame \(videoURL): \(error)")
             return nil
         }
+    }
+    
+    func extractFrames(from videoURL: URL, frameOffsets: [Int64], maxSize: CGSize? = nil) -> AVAssetImageGenerator.Images {
+        let asset = AVURLAsset(url: videoURL)
+        let generator = AVAssetImageGenerator(asset: asset)
+        if let maxSize = maxSize {
+            generator.maximumSize = maxSize
+        }
+        generator.appliesPreferredTrackTransform = true
+        generator.requestedTimeToleranceBefore = CMTime.zero;
+        generator.requestedTimeToleranceAfter = CMTime.zero;
+        
+        return generator.images(for: frameOffsets.map { o in CMTime(value: o, timescale: DatabaseManager.FPS) })
     }
 }
 

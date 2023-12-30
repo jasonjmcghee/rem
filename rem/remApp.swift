@@ -589,12 +589,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
             timelineViewWindow?.contentView = NSHostingView(rootView: timelineView)
             timelineViewWindow?.makeKeyAndOrderFront(nil)
-            timelineViewWindow?.orderFrontRegardless() // Ensure it comes to the front
+            DispatchQueue.main.async {
+                self.timelineViewWindow?.orderFrontRegardless() // Ensure it comes to the front
+            }
         } else if (!self.isTimelineOpen()) {
             timelineView?.viewModel.updateIndex(withIndex: index)
-
             timelineViewWindow?.makeKeyAndOrderFront(nil)
-            timelineViewWindow?.orderFrontRegardless() // Ensure it comes to the front
+            DispatchQueue.main.async {
+                self.timelineViewWindow?.orderFrontRegardless() // Ensure it comes to the front
+            }
         }
     }
     
@@ -627,15 +630,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 backing: .buffered, defer: false)
             searchViewWindow?.hasShadow = false
             searchViewWindow?.ignoresMouseEvents = false
-
+            
             searchViewWindow?.center()
             searchViewWindow?.contentView = NSHostingView(rootView: searchView)
             
             searchViewWindow?.makeKeyAndOrderFront(nil)
-            searchViewWindow?.orderFrontRegardless() // Ensure it comes to the front
+            DispatchQueue.main.async {
+                self.searchViewWindow?.orderFrontRegardless() // Ensure it comes to the front
+            }
         } else if (!(searchViewWindow?.isVisible ?? false)) {
             searchViewWindow?.makeKeyAndOrderFront(nil)
-            searchViewWindow?.orderFrontRegardless() // Ensure it comes to the front
+            DispatchQueue.main.async {
+                self.searchViewWindow?.orderFrontRegardless() // Ensure it comes to the front
+            }
         }
     }
 }

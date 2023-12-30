@@ -9,7 +9,8 @@ struct TimelineView: View {
     @State private var frame: NSRect
     @State private var lastAnalyzedIndex: Int64 = -1 // To track the last analyzed index
     @State var customHostingView: CustomHostingView?
-    @State private var debounceTimer: Timer? = nil
+    
+    private var ocrDebouncer = Debouncer(delay: 1.0)
 
     let overlayView = ImageAnalysisOverlayView()
     private let imageAnalyzer = ImageAnalyzer()
@@ -29,96 +30,85 @@ struct TimelineView: View {
     
     var body: some View {
         ZStack {
-            let index = viewModel.currentFrameIndex
-            if let image = DatabaseManager.shared.getImage(index: index) {
-                let nsImage = NSImage(cgImage: image, size: NSSize(width: image.width, height: image.width))
-                CustomHostingControllerRepresentable(settingsManager: settingsManager, onClose: onClose, image: nsImage, analysis: $imageAnalysis, frame: frame)
-                    .frame(width: frame.width, height: frame.height)
-                    .ignoresSafeArea(.all)
-                    .onChange(of: viewModel.currentFrameIndex) {
-                        debounceTimer?.invalidate()
-                        debounceTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: false) { _ in
-                            if let image = DatabaseManager.shared.getImage(index: viewModel.currentFrameIndex) {
-                                analyzeImage(image)  // Assuming `image` is available here, modify as needed
-                            }
-                        }
-                    }
-                    .onAppear {
-                        debounceTimer?.invalidate()
-                        analyzeImage(image)
-                    }
-            } else {
-                ZStack {
-                    VisualEffectView(material: .hudWindow, blendingMode: .behindWindow)
-                        .ignoresSafeArea()
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    VStack(alignment: .center) {
-                        Text("Nothing to remember, or missing frame (if missing, sorry, still alpha!)")
-                            .padding()
-                            .background(RoundedRectangle(cornerRadius: 10)
-                                .fill(Color.white.opacity(0.1)))
+            let image = DatabaseManager.shared.getImage(index: viewModel.currentFrameIndex)
+            let nsImage = image.flatMap { NSImage(cgImage: $0, size: NSSize(width: $0.width, height: $0.height)) }
+            
+            CustomHostingControllerRepresentable(
+                settingsManager: settingsManager,
+                onClose: onClose,
+                image: nsImage,
+                analysis: $imageAnalysis,
+                frame: frame
+            )
+                .frame(width: frame.width, height: frame.height)
+                .ignoresSafeArea(.all)
+                .onChange(of: viewModel.currentFrameIndex) {
+                    ocrDebouncer.debounce {
+                        analyzeCurrentImage()
                     }
                 }
-            }
+                .onAppear {
+                    analyzeCurrentImage()
+                }
+            
         }
         .ignoresSafeArea(.all)
     }
     
-    private func analyzeImage(_ image: CGImage) {
-        let configuration = ImageAnalyzer.Configuration([.text])
-        
+    private func analyzeCurrentImage() {
+        analyzeImage(index: viewModel.currentFrameIndex)
+    }
+    
+    private func analyzeImage(index: Int64) {
         Task {
-            do {
-                let nsImage = NSImage(cgImage: image, size: NSSize(width: image.width, height: image.height))
-                let analysis = try await imageAnalyzer.analyze(nsImage, orientation: CGImagePropertyOrientation.up, configuration: configuration)
-                DispatchQueue.main.async {
-                    self.imageAnalysis = analysis
-                    // print("Analysis successful: \(analysis.transcript)")
+            if let image = DatabaseManager.shared.getImage(index: index) {
+                let configuration = ImageAnalyzer.Configuration([.text])
+                do {
+                    let analysis = try await imageAnalyzer.analyze(image, orientation: CGImagePropertyOrientation.up, configuration: configuration)
+                    DispatchQueue.main.async {
+                        self.imageAnalysis = analysis
+                        // print("Analysis successful: \(analysis.transcript)")
+                    }
+                } catch {
+                    print("Error analyzing image: \(error)")
                 }
-            } catch {
-                print("Error analyzing image: \(error)")
             }
         }
     }
-        
-        
-//        struct Timeline_Previews: PreviewProvider {
-//            static var previews: some View {
-//                TimelineView(viewModel: TimelineViewModel())
-//            }
-//        }
-        
-        func pngData(from nsImage: NSImage) -> Data? {
-            guard let tiffRepresentation = nsImage.tiffRepresentation,
-                  let bitmapImage = NSBitmapImageRep(data: tiffRepresentation) else {
-                print("Failed to get TIFF representation of NSImage")
-                return nil
-            }
-            
-            guard let pngData = bitmapImage.representation(using: .png, properties: [:]) else {
-                print("Failed to convert NSImage to PNG")
-                return nil
-            }
-            
-            return pngData
+     
+    
+    // Useful for debugging...
+    func pngData(from nsImage: NSImage) -> Data? {
+        guard let tiffRepresentation = nsImage.tiffRepresentation,
+              let bitmapImage = NSBitmapImageRep(data: tiffRepresentation) else {
+            print("Failed to get TIFF representation of NSImage")
+            return nil
         }
         
-        func saveNSImage(image: NSImage, path: String) {
-            let pngData = pngData(from: image)
-            do {
-                if let savedir = RemFileManager.shared.getSaveDir() {
-                    let outputPath = savedir.appendingPathComponent("\(path).png").path
-                    let fileURL = URL(fileURLWithPath: outputPath)
-                    try pngData?.write(to: fileURL)
-                    print("PNG file written successfully")
-                } else {
-                    print("Error writing PNG file")
-                }
-            } catch {
-                print("Error writing PNG file: \(error)")
+        guard let pngData = bitmapImage.representation(using: .png, properties: [:]) else {
+            print("Failed to convert NSImage to PNG")
+            return nil
+        }
+        
+        return pngData
+    }
+    
+    func saveNSImage(image: NSImage, path: String) {
+        let pngData = pngData(from: image)
+        do {
+            if let savedir = RemFileManager.shared.getSaveDir() {
+                let outputPath = savedir.appendingPathComponent("\(path).png").path
+                let fileURL = URL(fileURLWithPath: outputPath)
+                try pngData?.write(to: fileURL)
+                print("PNG file written successfully")
+            } else {
+                print("Error writing PNG file")
             }
+        } catch {
+            print("Error writing PNG file: \(error)")
         }
     }
+}
 
 class CustomHostingView: NSHostingView<AnyView> {
     var imageView: NSImageView!
@@ -172,8 +162,8 @@ class CustomHostingView: NSHostingView<AnyView> {
 
 struct CustomHostingControllerRepresentable: NSViewControllerRepresentable {
     var settingsManager: SettingsManager
-    var onClose: () -> Void  // Closure to handle thumbnail click
-    var image: NSImage
+    var onClose: () -> Void
+    var image: NSImage?
     @Binding var analysis: ImageAnalysis?
     var frame: NSRect
 
@@ -181,13 +171,12 @@ struct CustomHostingControllerRepresentable: NSViewControllerRepresentable {
         let viewController = CustomHostingViewController()
         viewController.onClose = onClose
         viewController.settingsManager = settingsManager
-        viewController.updateImage(image, frame: frame)
+        viewController.updateContent(image: image, frame: frame, analysis: analysis)
         return viewController
     }
 
     func updateNSViewController(_ nsViewController: CustomHostingViewController, context: Context) {
-        nsViewController.updateImage(image, frame: frame)
-        nsViewController.updateAnalysis(analysis)
+        nsViewController.updateContent(image: image, frame: frame, analysis: analysis)
         nsViewController.onClose = onClose
         nsViewController.settingsManager = settingsManager
     }
@@ -217,15 +206,44 @@ class CustomHostingViewController: NSViewController {
         interceptingView = _interceptingView
     }
 
-    func updateImage(_ image: NSImage, frame: NSRect) {
-        if customHostingView == nil {
-            customHostingView = CustomHostingView(image: image, frame: frame)
+    func updateImage(_ image: NSImage?, frame: NSRect) {
+        if let image = image {
+            // Image available: update or create CustomHostingView with the image
+            if customHostingView == nil {
+                customHostingView = CustomHostingView(image: image, frame: frame)
+                customHostingView?.frame = CGRect(origin: .zero, size: frame.size)
+                view.addSubview(customHostingView!)
+            } else {
+                customHostingView?.updateImage(image)
+            }
             customHostingView?.frame = CGRect(origin: .zero, size: frame.size)
-            view.addSubview(customHostingView!)
         } else {
-            customHostingView?.updateImage(image)
+            // Image not available: Display VisualEffectView
+            displayVisualEffectView()
         }
-        customHostingView?.frame = CGRect(origin: .zero, size: frame.size)
+    }
+
+    func updateContent(image: NSImage?, frame: NSRect, analysis: ImageAnalysis?) {
+        if let image = image {
+            // Image is available
+            updateImage(image, frame: frame)
+            updateAnalysis(analysis)
+        } else {
+            // Image is not available, display VisualEffectView
+            displayVisualEffectView()
+        }
+    }
+
+    private func displayVisualEffectView() {
+        // Ensure previous content is removed
+        view.subviews.forEach { $0.removeFromSuperview() }
+
+        let visualEffectView = VisualEffectView(material: .hudWindow, blendingMode: .behindWindow)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        NSHostingController(rootView: visualEffectView)
+            .view
+            .frame = view.bounds
+        view.addSubview(NSHostingController(rootView: visualEffectView).view)
     }
 
     func updateAnalysis(_ analysis: ImageAnalysis?) {
@@ -277,6 +295,7 @@ class TimelineViewModel: ObservableObject {
     private var speedFactor: Double = 0.05 // Adjust this factor based on UX requirements
     @Published var currentFrameContinuous: Double = 0.0
     @Published var currentFrameIndex: Int64 = 0
+    private var indexUpdateThrottle = Throttler(delay: 0.05)
     
     init() {
         let maxFrame = DatabaseManager.shared.getMaxFrame()
@@ -307,8 +326,8 @@ class TimelineViewModel: ObservableObject {
     }
     
     func updateIndexSafely() {
-        let rounded = Int64(currentFrameContinuous)
-        if DatabaseManager.shared.getFrame(forIndex: rounded) != nil {
+        indexUpdateThrottle.throttle {
+            let rounded = Int64(self.currentFrameContinuous)
             self.currentFrameIndex = rounded
         }
     }
