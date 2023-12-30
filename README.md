@@ -1,6 +1,6 @@
 # <img src="rem/Assets.xcassets/AppIcon.appiconset/AppIcon128x128@2x.png" width=24 /> rem
 
-🧠 Remember everything. (very alpha - [download anyway](https://github.com/jasonjmcghee/rem/releases/tag/v0.1.4))
+🧠 Remember everything. (very alpha - [download anyway](https://github.com/jasonjmcghee/rem/releases/tag/v0.1.5))
 
 ### Original Demo
 <a href="https://www.loom.com/share/091a48b318f04f22bdada62716298948">
@@ -34,7 +34,7 @@ Also, that means there is no tracking / analytics of any kind, which means I don
 
 ## Getting Started
 
-- [Download the latest release](https://github.com/jasonjmcghee/rem/releases/tag/v0.1.4), or build it yourself!
+- [Download the latest release](https://github.com/jasonjmcghee/rem/releases/tag/v0.1.5), or build it yourself!
 - Launch the app
 - Click the brain
 - Click "Start Remembering"
