@@ -11,6 +11,7 @@ import SwiftUI
 // The settings structure
 struct AppSettings: Codable {
     var saveEverythingCopiedToClipboard: Bool
+    var enableCmdScrollShortcut: Bool
 }
 
 // The settings manager handles saving and loading the settings
@@ -26,7 +27,7 @@ class SettingsManager: ObservableObject {
             self.settings = decodedSettings
         } else {
             // Default settings
-            self.settings = AppSettings(saveEverythingCopiedToClipboard: false)
+            self.settings = AppSettings(saveEverythingCopiedToClipboard: false, enableCmdScrollShortcut: true)
         }
     }
 
@@ -48,6 +49,8 @@ struct SettingsView: View {
             Form {
                 Toggle("Remember everything copied to clipboard", isOn: $settingsManager.settings.saveEverythingCopiedToClipboard)
                     .onChange(of: settingsManager.settings.saveEverythingCopiedToClipboard) { settingsManager.saveSettings() }
+                Toggle("Allow opening / closing timeline with CMD + Scroll", isOn: $settingsManager.settings.enableCmdScrollShortcut)
+                    .onChange(of: settingsManager.settings.enableCmdScrollShortcut) { settingsManager.saveSettings() }
             }
         }
         .padding()
