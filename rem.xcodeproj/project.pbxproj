@@ -27,6 +27,7 @@
 		96DBA3182B3E7D3B0000CFBE /* SQLite.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 96E66BC32B2F5745006E1E97 /* SQLite.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		96DBA3362B3F29C40000CFBE /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96DBA3352B3F29C40000CFBE /* main.swift */; };
 		96DBA33D2B3F2AC30000CFBE /* ffmpeg in Embed Helper Tools */ = {isa = PBXBuildFile; fileRef = 961C960D2B2E73840093F228 /* ffmpeg */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		96DBA3C82B40164E0000CFBE /* Timing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96DBA3C72B40164E0000CFBE /* Timing.swift */; };
 		96F062182B35111D00695621 /* Search.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96F062172B35111D00695621 /* Search.swift */; };
 /* End PBXBuildFile section */
 
@@ -280,6 +281,7 @@
 			isa = PBXGroup;
 			children = (
 				969F3F092B3B7F760085787B /* Info.plist */,
+				96DBA3C72B40164E0000CFBE /* Timing.swift */,
 				961C96122B2EB7DB0093F228 /* TimelineView.swift */,
 				961C95D92B2E19B30093F228 /* remApp.swift */,
 				961C95DB2B2E19B30093F228 /* ContentView.swift */,
@@ -652,6 +654,7 @@
 				96B0DA3A2B3A08280030E8AE /* TextMerger.swift in Sources */,
 				96F062182B35111D00695621 /* Search.swift in Sources */,
 				961C96132B2EB7DB0093F228 /* TimelineView.swift in Sources */,
+				96DBA3C82B40164E0000CFBE /* Timing.swift in Sources */,
 				969F3F082B3B7C7C0085787B /* RemFileManager.swift in Sources */,
 				961C95DA2B2E19B30093F228 /* remApp.swift in Sources */,
 				96B0DA382B3A02530030E8AE /* ClipboardManager.swift in Sources */,
