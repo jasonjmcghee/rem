@@ -40,6 +40,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         subsystem: Bundle.main.bundleIdentifier!,
         category: String(describing: AppDelegate.self)
     )
+    
+    var imageAnalyzer = ImageAnalyzer()
     var timelineViewWindow: NSWindow?
     var timelineView: TimelineView?
     
@@ -204,7 +206,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if self.isTimelineOpen() {
             self.closeTimelineView()
         } else {
-            let frame = DatabaseManager.shared.getLastAccessibleFrame()
+            let frame = DatabaseManager.shared.getMaxFrame()
             self.showTimelineView(with: frame)
         }
     }
@@ -298,13 +300,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             guard let image = CGDisplayCreateImage(display.displayID, rect: display.frame) else { return }
             let frameId = DatabaseManager.shared.insertFrame(activeApplicationName: activeApplicationName)
             
-            DispatchQueue.main.async {
-                if (!self.isTimelineOpen()) {
-                    // Make sure to set timeline to be the latest frame
-                    self.timelineView?.viewModel.setIndexToLatest()
-                }
-            }
-            
             await processScreenshot(frameId: frameId, image: image, frame: display.frame)
             
             screenshotQueue.asyncAfter(deadline: .now() + 2) { [weak self] in
@@ -335,13 +330,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     func stopScreenCapture() {
         isCapturing = .stopped
-        self.timelineView?.viewModel.setIndexToLatest()
         logger.info("Screen capture stopped")
     }
     
     func pauseScreenCapture() {
         isCapturing = .paused
-        self.timelineView?.viewModel.setIndexToLatest()
         logger.info("Screen capture paused")
     }
     
@@ -476,13 +469,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         imageBufferQueue.sync { [weak self] in
             guard let strongSelf = self else { return }
             
-            if !strongSelf.imageDataBuffer.isEmpty {
-                let buffer = strongSelf.imageDataBuffer
-                if !strongSelf.imageDataBuffer.isEmpty {
-                    strongSelf.processChunk(strongSelf.imageDataBuffer)
-                }
+            // Move the images to a temporary buffer if the threshold is reached
+            let tempBuffer: [Data] = Array(strongSelf.imageDataBuffer.prefix(strongSelf.frameThreshold))
+            strongSelf.imageDataBuffer.removeAll()
+
+            // Process the images outside of the critical section
+            if !tempBuffer.isEmpty {
+                strongSelf.processChunk(tempBuffer)
             }
         }
+        
+        self.timelineView?.viewModel.setIndexToLatest()
         
         setupMenu()
     }
@@ -507,7 +504,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 do {
                     let configuration = ImageAnalyzer.Configuration([.text])
                     let nsImage = NSImage(cgImage: image, size: NSSize(width: image.width, height: image.height))
-                    let analysis = try await ImageAnalyzer().analyze(nsImage, orientation: CGImagePropertyOrientation.up, configuration: configuration)
+                    let analysis = try await self.imageAnalyzer.analyze(nsImage, orientation: CGImagePropertyOrientation.up, configuration: configuration)
                     let textToAssociate = analysis.transcript
                     var texts = [textToAssociate]
                     if self.settingsManager.settings.saveEverythingCopiedToClipboard {
@@ -562,6 +559,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     @objc func showTimelineView(with index: Int64) {
+        pauseRecording()
         closeSearchView()
         if timelineViewWindow == nil {
             let screenRect = NSScreen.main?.frame ?? NSRect.zero
@@ -584,12 +582,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             timelineView?.viewModel.updateIndex(withIndex: index)
 
             timelineViewWindow?.contentView = NSHostingView(rootView: timelineView)
+            timelineView?.viewModel.setIsOpen(isOpen: true)
             timelineViewWindow?.makeKeyAndOrderFront(nil)
             DispatchQueue.main.async {
                 self.timelineViewWindow?.orderFrontRegardless() // Ensure it comes to the front
             }
         } else if (!self.isTimelineOpen()) {
             timelineView?.viewModel.updateIndex(withIndex: index)
+            timelineView?.viewModel.setIsOpen(isOpen: true)
             timelineViewWindow?.makeKeyAndOrderFront(nil)
             DispatchQueue.main.async {
                 self.timelineViewWindow?.orderFrontRegardless() // Ensure it comes to the front
@@ -613,9 +613,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func closeTimelineView() {
         timelineViewWindow?.isReleasedWhenClosed = false
         timelineViewWindow?.close()
+        timelineView?.viewModel.setIsOpen(isOpen: false)
+        if isCapturing == .paused {
+            enableRecording()
+        }
     }
     
     @objc func showSearchView() {
+        pauseRecording()
         closeTimelineView()
         // Ensure that the search view window is created and shown
         if searchViewWindow == nil {

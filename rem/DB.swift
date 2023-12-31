@@ -10,12 +10,17 @@ import AVFoundation
 import Foundation
 import SQLite
 import Vision
+import os
 
 class DatabaseManager {
     static let shared = DatabaseManager()
     private var db: Connection
     static var FPS: CMTimeScale = 25
     
+    private let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier!,
+        category: String(describing: DatabaseManager.self)
+    )
     // Last 15 frames
     let recentFramesThreshold = 15
     
@@ -132,6 +137,7 @@ class DatabaseManager {
     }
     
     func insertFrame(activeApplicationName: String?) -> Int64 {
+        // logger.debug("inserting frame: \(self.lastFrameId + 1) at offset: \(self.currentFrameOffset)")
         let insert = frames.insert(chunkId <- currentChunkId, timestamp <- Date(), offsetIndex <- currentFrameOffset, self.activeApplicationName <- activeApplicationName)
         let id = try! db.run(insert)
         currentFrameOffset += 1
@@ -151,8 +157,8 @@ class DatabaseManager {
                 return (frame[offsetIndex], frame[filePath])
             }
             
-            //            let justFrameQuery = frames.filter(frames[id] === index).limit(1)
-            //            try! db.run(justFrameQuery.delete())
+            //  let justFrameQuery = frames.filter(frames[id] === index).limit(1)
+            //  try! db.run(justFrameQuery.delete())
         } catch {
             return nil
         }
