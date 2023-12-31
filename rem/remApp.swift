@@ -292,9 +292,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         Task {
             guard let display = shareableContent.displays.first else { return }
+            let activeApplicationName = NSWorkspace.shared.frontmostApplication?.localizedName
 
-            let window = shareableContent.windows.first { $0.isActive }
-            let activeApplicationName = window?.owningApplication?.applicationName
+            logger.debug("Active Application: \(activeApplicationName ?? "<undefined>")")
             
             // Do we want to record the timeline being searched?
             guard let image = CGDisplayCreateImage(display.displayID, rect: display.frame) else { return }
