@@ -32,7 +32,7 @@ struct remApp: App {
 
     var body: some Scene {
         // Empty scene, as we are controlling everything through the AppDelegate
-        Settings { EmptyView() }
+        Settings { SettingsView(settingsManager: appDelegate.settingsManager) }
     }
 }
 
@@ -190,7 +190,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             menu.addItem(
                 withTitle: "Settings",
                 action: #selector(self.openSettings),
-                keyEquivalent: ""
+                keyEquivalent: ","
             )
             menu.addItem(NSMenuItem(title: "Quit", action: #selector(self.quitApp), keyEquivalent: "q"))
             self.statusBarItem.menu = menu
