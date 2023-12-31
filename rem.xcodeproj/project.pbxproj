@@ -31,6 +31,10 @@
 		96DBA3C82B40164E0000CFBE /* (null) in Sources */ = {isa = PBXBuildFile; };
 		96DBA3E72B403ED90000CFBE /* Timings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96DBA3E62B403ED90000CFBE /* Timings.swift */; };
 		96F062182B35111D00695621 /* Search.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96F062172B35111D00695621 /* Search.swift */; };
+		BF5FEB8E2B41AF6900744FC2 /* WindowHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF5FEB8D2B41AF6900744FC2 /* WindowHelper.swift */; };
+		BF5FEB8F2B41AF6900744FC2 /* WindowHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF5FEB8D2B41AF6900744FC2 /* WindowHelper.swift */; };
+		BF5FEB912B41D08F00744FC2 /* ImageUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF5FEB902B41D08F00744FC2 /* ImageUtils.swift */; };
+		BF5FEB922B41D08F00744FC2 /* ImageUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF5FEB902B41D08F00744FC2 /* ImageUtils.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -220,6 +224,8 @@
 		96E66BB42B2F5745006E1E97 /* SQLite.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SQLite.xcodeproj; path = ./SQLite.swift/SQLite.xcodeproj; sourceTree = "<group>"; };
 		96E66BCC2B2F574D006E1E97 /* SQLite.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SQLite.xcodeproj; path = ./SQLite.swift/SQLite.xcodeproj; sourceTree = "<group>"; };
 		96F062172B35111D00695621 /* Search.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Search.swift; sourceTree = "<group>"; };
+		BF5FEB8D2B41AF6900744FC2 /* WindowHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowHelper.swift; sourceTree = "<group>"; };
+		BF5FEB902B41D08F00744FC2 /* ImageUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageUtils.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -287,6 +293,7 @@
 				969F3F092B3B7F760085787B /* Info.plist */,
 				961C96122B2EB7DB0093F228 /* TimelineView.swift */,
 				961C95D92B2E19B30093F228 /* remApp.swift */,
+				BF5FEB902B41D08F00744FC2 /* ImageUtils.swift */,
 				961C95DB2B2E19B30093F228 /* ContentView.swift */,
 				961C95DD2B2E19B40093F228 /* Assets.xcassets */,
 				961C95E22B2E19B40093F228 /* rem.entitlements */,
@@ -296,6 +303,7 @@
 				96B0DA372B3A02530030E8AE /* ClipboardManager.swift */,
 				96B0DA392B3A08280030E8AE /* TextMerger.swift */,
 				969F3F072B3B7C7C0085787B /* RemFileManager.swift */,
+				BF5FEB8D2B41AF6900744FC2 /* WindowHelper.swift */,
 				969F3F0A2B3CB2110085787B /* Field.swift */,
 				969F3F0C2B3CCEC30085787B /* Ask.swift */,
 				969BA2EB2B3D1D46009EE9C6 /* SettingsManager.swift */,
@@ -655,6 +663,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				961C95DC2B2E19B30093F228 /* ContentView.swift in Sources */,
+				BF5FEB8E2B41AF6900744FC2 /* WindowHelper.swift in Sources */,
 				961C96152B2EBEE50093F228 /* DB.swift in Sources */,
 				96B0DA3A2B3A08280030E8AE /* TextMerger.swift in Sources */,
 				96F062182B35111D00695621 /* Search.swift in Sources */,
@@ -668,6 +677,7 @@
 				969F3F0D2B3CCEC30085787B /* Ask.swift in Sources */,
 				96DBA3E72B403ED90000CFBE /* Timings.swift in Sources */,
 				9670E1352B41683B005728F5 /* ImageHelper.swift in Sources */,
+				BF5FEB912B41D08F00744FC2 /* ImageUtils.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -676,6 +686,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				961C95EC2B2E19B40093F228 /* remTests.swift in Sources */,
+				BF5FEB8F2B41AF6900744FC2 /* WindowHelper.swift in Sources */,
+				BF5FEB922B41D08F00744FC2 /* ImageUtils.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -11,6 +11,7 @@ import ScreenCaptureKit
 import Vision
 import VisionKit
 import CoreGraphics
+import ScriptingBridge
 import os
 
 final class MainWindow: NSWindow {
@@ -349,7 +350,22 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 //    }
     
     private func processScreenshot(frameId: Int64, image: CGImage, frame: CGRect) async {
-        self.performOCR(frameId: frameId, on: image, frame: frame)
+        var ocrFrame = frame
+        var nsImage = NSImage(cgImage: image, size: NSZeroSize)
+        if settingsManager.settings.onlyOCRFrontmostWindow {
+            if let app = NSWorkspace.shared.frontmostApplication {
+                if let bounds = WindowHelper.shared.getActiveWindowBounds(forApp: app) {
+                    logger.debug("active window bounds = \(String(describing: bounds))")
+                    ocrFrame = bounds
+                    if let img = croppedImage(from: image, frame: ocrFrame) {
+                        logger.debug("Cropped image to \(String(describing: ocrFrame)): \(img)")
+                        nsImage = img
+                    }
+                }
+            }
+        }
+
+        self.performOCR(frameId: frameId, on: nsImage, frame: ocrFrame)
         let bitmapRep = NSBitmapImageRep(cgImage: image)
         guard let data = bitmapRep.representation(using: .png, properties: [:]) else { return }
         
@@ -489,7 +505,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     
-    private func performOCR(frameId: Int64, on image: CGImage, frame: CGRect) {
+    private func performOCR(frameId: Int64, on image: NSImage, frame: CGRect) {
         ocrQueue.async {
             // Select only a region... / active window?
 //            let invWidth = 1 / CGFloat(image.width)
@@ -503,9 +519,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             Task {
                 do {
                     let configuration = ImageAnalyzer.Configuration([.text])
-                    let nsImage = NSImage(cgImage: image, size: NSSize(width: image.width, height: image.height))
-                    let analysis = try await self.imageAnalyzer.analyze(nsImage, orientation: CGImagePropertyOrientation.up, configuration: configuration)
+                    self.logger.debug("Start OCR ...")
+                    let analysis = try await self.imageAnalyzer.analyze(image, orientation: CGImagePropertyOrientation.up, configuration: configuration)
                     let textToAssociate = analysis.transcript
+                    self.logger.debug("Analysed text: \(textToAssociate)")
                     var texts = [textToAssociate]
                     if self.settingsManager.settings.saveEverythingCopiedToClipboard {
                         let newClipboardText = ClipboardManager.shared.getClipboardIfChanged() ?? ""
