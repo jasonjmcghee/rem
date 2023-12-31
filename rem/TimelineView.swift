@@ -48,9 +48,7 @@ struct TimelineView: View {
                 .frame(width: frame.width, height: frame.height)
                 .ignoresSafeArea(.all)
                 .onChange(of: viewModel.currentFrameIndex) {
-                    ocrDebouncer.debounce {
-                        analyzeCurrentImage()
-                    }
+                    analyzeCurrentImage()
                 }
                 .onAppear {
                     analyzeCurrentImage()
@@ -61,7 +59,9 @@ struct TimelineView: View {
     }
     
     private func analyzeCurrentImage() {
-        analyzeImage(index: viewModel.currentFrameIndex)
+        ocrDebouncer.debounce {
+            analyzeImage(index: viewModel.currentFrameIndex)
+        }
     }
     
     private func analyzeImage(index: Int64) {

@@ -18,10 +18,12 @@ class Debouncer {
 
     func debounce(action: @escaping () -> Void) {
         workItem?.cancel()
-        workItem = DispatchWorkItem { action() }
         let deadline = lastFireTime + delay
+        workItem = DispatchWorkItem {
+            action()
+            self.lastFireTime = deadline
+        }
         DispatchQueue.main.asyncAfter(deadline: deadline, execute: workItem!)
-        lastFireTime = deadline
     }
 }
 
