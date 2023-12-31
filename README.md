@@ -77,11 +77,6 @@ Also, that means there is no tracking / analytics of any kind, which means I don
 - [ ] Fine-grained purging / trimming / selecting recording
 - [ ] Multi-monitor support
 
-## Contributors ✨
-<a href="https://github.com/jasonjmcghee/rem/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=jasonjmcghee/rem" />
-</a>
-
 ### FAQ
 - Where is my data?
     - Click "Show Me My Data" in the tray / status icon menu
