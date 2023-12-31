@@ -6,10 +6,10 @@
 //
 
 // SQLite.swift
+import AVFoundation
 import Foundation
 import SQLite
 import Vision
-import AVFoundation
 
 class DatabaseManager {
     static let shared = DatabaseManager()
@@ -18,12 +18,11 @@ class DatabaseManager {
     
     // Last 15 frames
     let recentFramesThreshold = 15
-
+    
     private let videoChunks = Table("video_chunks")
     private let frames = Table("frames")
     let allText = VirtualTable("allText")
-
-
+    
     private let id = Expression<Int64>("id")
     private let offsetIndex = Expression<Int64>("offsetIndex")
     private let chunkId = Expression<Int64>("chunkId")
@@ -37,14 +36,14 @@ class DatabaseManager {
     private var currentChunkId: Int64 = 0 // Initialize with a default value
     private var lastFrameId: Int64 = 0
     private var currentFrameOffset: Int64 = 0
-
+    
     init() {
         if let savedir = RemFileManager.shared.getSaveDir() {
             db = try! Connection("\(savedir)/db.sqlite3")
         } else {
             db = try! Connection("db.sqlite3")
         }
-
+        
         createTables()
         currentChunkId = getCurrentChunkId()
         lastFrameId = getLastFrameId()
@@ -52,24 +51,25 @@ class DatabaseManager {
     
     func purge() {
         do {
-            try db.run(self.videoChunks.drop(ifExists: true))
-            try db.run(self.frames.drop(ifExists: true))
-            try db.run(self.allText.drop(ifExists: true))
+            try db.run(videoChunks.drop(ifExists: true))
+            try db.run(frames.drop(ifExists: true))
+            try db.run(allText.drop(ifExists: true))
         } catch {
             print("Failed to delete tables")
         }
         
         createTables()
+        createIndices()
         currentChunkId = getCurrentChunkId()
         lastFrameId = getLastFrameId()
     }
-
+    
     private func createTables() {
         try! db.run(videoChunks.create(ifNotExists: true) { t in
             t.column(id, primaryKey: .autoincrement)
             t.column(filePath)
         })
-
+        
         try! db.run(frames.create(ifNotExists: true) { t in
             t.column(id, primaryKey: .autoincrement)
             t.column(chunkId, references: videoChunks, id)
@@ -83,9 +83,21 @@ class DatabaseManager {
             .column(text)
             .languageId("lid")
             .order(.desc)
-
+        
         // Text search
         try! db.run(allText.create(.FTS4(config), ifNotExists: true))
+    }
+    
+    private func createIndices() {
+        do {
+            // Compound index on frames for chunkId and id
+            try db.run(frames.createIndex(chunkId, id, unique: false, ifNotExists: true))
+            try db.run(frames.createIndex(timestamp, ifNotExists: true))
+            
+            // Additional indices can be added here as needed
+        } catch {
+            print("Failed to create indices: \(error)")
+        }
     }
     
     private func getCurrentChunkId() -> Int64 {
@@ -109,7 +121,7 @@ class DatabaseManager {
         }
         return 0
     }
-
+    
     // Insert a new video chunk and return its ID
     func startNewVideoChunk(filePath: String) -> Int64 {
         let insert = videoChunks.insert(self.filePath <- filePath)
@@ -118,9 +130,9 @@ class DatabaseManager {
         currentFrameOffset = 0
         return id
     }
-
+    
     func insertFrame(activeApplicationName: String?) -> Int64 {
-        let insert = frames.insert(self.chunkId <- currentChunkId, self.timestamp <- Date(), self.offsetIndex <- currentFrameOffset, self.activeApplicationName <- activeApplicationName)
+        let insert = frames.insert(chunkId <- currentChunkId, timestamp <- Date(), offsetIndex <- currentFrameOffset, self.activeApplicationName <- activeApplicationName)
         let id = try! db.run(insert)
         currentFrameOffset += 1
         lastFrameId = id
@@ -136,11 +148,11 @@ class DatabaseManager {
         do {
             let query = frames.join(videoChunks, on: chunkId == videoChunks[id]).filter(frames[id] == index).limit(1)
             if let frame = try db.pluck(query) {
-                return (frame[self.offsetIndex], frame[self.filePath])
+                return (frame[offsetIndex], frame[filePath])
             }
-
-//            let justFrameQuery = frames.filter(frames[id] === index).limit(1)
-//            try! db.run(justFrameQuery.delete())
+            
+            //            let justFrameQuery = frames.filter(frames[id] === index).limit(1)
+            //            try! db.run(justFrameQuery.delete())
         } catch {
             return nil
         }
@@ -156,7 +168,7 @@ class DatabaseManager {
             return false
         }
     }
-
+    
     // Function to retrieve the file path of a video chunk by its index
     func getVideoChunkPath(byIndex index: Int64) -> String? {
         do {
@@ -169,8 +181,8 @@ class DatabaseManager {
         }
         return nil
     }
-
-// Function to get the timestamp of the last inserted frame
+    
+    // Function to get the timestamp of the last inserted frame
     private func getLastFrameTimestamp() -> Date? {
         do {
             let query = frames.select(timestamp).order(id.desc).limit(1)
@@ -229,15 +241,15 @@ class DatabaseManager {
         let query = allText
             .join(frames, on: frames[id] == allText[frameId])
             .join(videoChunks, on: frames[chunkId] == videoChunks[id])
-            .filter(self.text.match("*\(searchText)*"))
-            .select(allText[frameId], self.text, frames[activeApplicationName], frames[timestamp], videoChunks[filePath], frames[offsetIndex])
+            .filter(text.match("*\(searchText)*"))
+            .select(allText[frameId], text, frames[activeApplicationName], frames[timestamp], videoChunks[filePath], frames[offsetIndex])
             .limit(limit, offset: offset)
-
+        
         var results: [(Int64, String, String?, Date, String, Int64)] = []
         do {
             for row in try db.prepare(query) {
                 let frameId = row[allText[frameId]]
-                let matchedText = row[self.text]
+                let matchedText = row[text]
                 let applicationName = row[frames[activeApplicationName]]
                 let timestamp = row[frames[timestamp]]
                 let filePath = row[videoChunks[filePath]]
@@ -256,7 +268,7 @@ class DatabaseManager {
             .select(frames[id], frames[activeApplicationName], frames[timestamp], videoChunks[filePath], frames[offsetIndex])
             .order(frames[timestamp].desc)
             .limit(limit, offset: offset)
-
+        
         var results: [(Int64, String?, String?, Date, String, Int64)] = []
         do {
             for row in try db.prepare(query) {
@@ -292,8 +304,8 @@ class DatabaseManager {
             generator.maximumSize = maxSize
         }
         generator.appliesPreferredTrackTransform = true
-        generator.requestedTimeToleranceBefore = CMTime.zero;
-        generator.requestedTimeToleranceAfter = CMTime.zero;
+        generator.requestedTimeToleranceBefore = CMTime.zero
+        generator.requestedTimeToleranceAfter = CMTime.zero
         
         do {
             let a = CMTime(value: frameOffset, timescale: DatabaseManager.FPS)
@@ -312,11 +324,9 @@ class DatabaseManager {
             generator.maximumSize = maxSize
         }
         generator.appliesPreferredTrackTransform = true
-        generator.requestedTimeToleranceBefore = CMTime.zero;
-        generator.requestedTimeToleranceAfter = CMTime.zero;
+        generator.requestedTimeToleranceBefore = CMTime.zero
+        generator.requestedTimeToleranceAfter = CMTime.zero
         
         return generator.images(for: frameOffsets.map { o in CMTime(value: o, timescale: DatabaseManager.FPS) })
     }
 }
-
-
