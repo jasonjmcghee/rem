@@ -301,6 +301,23 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             guard let image = CGDisplayCreateImage(display.displayID, rect: display.frame) else { return }
             let frameId = DatabaseManager.shared.insertFrame(activeApplicationName: activeApplicationName)
             
+            if settingsManager.settings.onlyOCRFrontmostWindow {
+                // User wants to perform OCR on only active window.
+                if
+                    // let window = shareableContent.windows.first(where: { $0.owningApplication?.processID == NSWorkspace.shared.frontmostApplication?.processIdentifier }),
+                    let app = NSWorkspace.shared.frontmostApplication,
+                    let bounds = WindowHelper.shared.getActiveWindowBounds(forApp: app),
+                    let cropped = image.cropping(to: bounds)
+                {
+                    logger.debug("bounds \(String(describing: bounds))")
+                    logger.debug("cropped image \(String(describing: cropped))")
+                    self.performOCR(frameId: frameId, on: cropped)
+                }
+            } else {
+                // default: User wants to perform OCR on full display.
+                self.performOCR(frameId: frameId, on: image)
+            }
+
             await processScreenshot(frameId: frameId, image: image, frame: display.frame)
             
             screenshotQueue.asyncAfter(deadline: .now() + 2) { [weak self] in
@@ -350,22 +367,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 //    }
     
     private func processScreenshot(frameId: Int64, image: CGImage, frame: CGRect) async {
-        var ocrFrame = frame
-        var nsImage = NSImage(cgImage: image, size: NSZeroSize)
-        if settingsManager.settings.onlyOCRFrontmostWindow {
-            if let app = NSWorkspace.shared.frontmostApplication {
-                if let bounds = WindowHelper.shared.getActiveWindowBounds(forApp: app) {
-                    logger.debug("active window bounds = \(String(describing: bounds))")
-                    ocrFrame = bounds
-                    if let img = croppedImage(from: image, frame: ocrFrame) {
-                        logger.debug("Cropped image to \(String(describing: ocrFrame)): \(img)")
-                        nsImage = img
-                    }
-                }
-            }
-        }
-
-        self.performOCR(frameId: frameId, on: nsImage, frame: ocrFrame)
         let bitmapRep = NSBitmapImageRep(cgImage: image)
         guard let data = bitmapRep.representation(using: .png, properties: [:]) else { return }
         
@@ -505,7 +506,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     
-    private func performOCR(frameId: Int64, on image: NSImage, frame: CGRect) {
+    private func performOCR(frameId: Int64, on image: CGImage) {
         ocrQueue.async {
             // Select only a region... / active window?
 //            let invWidth = 1 / CGFloat(image.width)
@@ -520,7 +521,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 do {
                     let configuration = ImageAnalyzer.Configuration([.text])
                     self.logger.debug("Start OCR ...")
-                    let analysis = try await self.imageAnalyzer.analyze(image, orientation: CGImagePropertyOrientation.up, configuration: configuration)
+                    let nsImage = NSImage(cgImage: image, size: NSZeroSize)
+                    let analysis = try await self.imageAnalyzer.analyze(nsImage, orientation: CGImagePropertyOrientation.up, configuration: configuration)
                     let textToAssociate = analysis.transcript
                     self.logger.debug("Analysed text: \(textToAssociate)")
                     var texts = [textToAssociate]
