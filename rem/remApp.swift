@@ -395,7 +395,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if let savedir = RemFileManager.shared.getSaveDir() {
             let outputPath = savedir.appendingPathComponent("output-\(Date().timeIntervalSince1970).mp4").path
             
-            let id = DatabaseManager.shared.startNewVideoChunk(filePath: outputPath)
+            let _ = DatabaseManager.shared.startNewVideoChunk(filePath: outputPath)
             
             // Setup the FFmpeg process for the chunk
             let ffmpegProcess = Process()
