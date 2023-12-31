@@ -508,15 +508,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     private func performOCR(frameId: Int64, on image: CGImage) {
         ocrQueue.async {
-            // Select only a region... / active window?
-//            let invWidth = 1 / CGFloat(image.width)
-//            let invHeight = 1 / CGFloat(image.height)
-//            let regionOfInterest = CGRect(
-//                x: min(max(0, frame.minX * invWidth), 1),
-//                y: min(max(0, frame.minY * invHeight), 1),
-//                width: min(max(0, frame.width * invWidth), 1),
-//                height: min(max(0, frame.height * invHeight), 1)
-//            )
             Task {
                 do {
                     let configuration = ImageAnalyzer.Configuration([.text])
