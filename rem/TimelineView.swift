@@ -297,7 +297,7 @@ class TimelineViewModel: ObservableObject {
     func updateIndex(withDelta delta: Double) {
         // Logic to update the index based on the delta
         // This method will be called from AppDelegate
-        var nextValue = currentFrameContinuous - delta * speedFactor
+        let nextValue = currentFrameContinuous - delta * speedFactor
         let maxValue = Double(DatabaseManager.shared.getMaxFrame())
         let clampedValue = min(max(1, nextValue), maxValue)
         self.currentFrameContinuous = clampedValue

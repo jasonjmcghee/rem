@@ -395,7 +395,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if let savedir = RemFileManager.shared.getSaveDir() {
             let outputPath = savedir.appendingPathComponent("output-\(Date().timeIntervalSince1970).mp4").path
             
-            DatabaseManager.shared.startNewVideoChunk(filePath: outputPath)
+            let id = DatabaseManager.shared.startNewVideoChunk(filePath: outputPath)
             
             // Setup the FFmpeg process for the chunk
             let ffmpegProcess = Process()
@@ -431,7 +431,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
 
             // Write the chunk data to the FFmpeg process
-            for (index, data) in chunk.enumerated() {
+            for (_, data) in chunk.enumerated() {
                 do {
                     try ffmpegInputPipe.fileHandleForWriting.write(contentsOf: data)
                 } catch {
