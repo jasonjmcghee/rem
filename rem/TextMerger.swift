@@ -11,9 +11,6 @@ class TextMerger {
     static let shared = TextMerger()
 
     func mergeTexts(texts: [String]) -> String {
-        if texts.count == 1 {
-            return texts[0]
-        }
         var mergedText: String = ""
         var linesSeen = Set<String>()
         for text in texts {
