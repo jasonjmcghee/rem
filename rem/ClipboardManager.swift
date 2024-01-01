@@ -39,7 +39,7 @@ class ClipboardManager {
         pasteboard.clearContents()
         
         let finalContents = string.isEmpty ? "No context. Is remembering disabled?" : """
-        Below is the text that's been on my screen recently. ------------- \(string) ------------------ Above is the text that's been on my screen recently. Please answer whatever I ask using the provided information about what has been on the scren recently. Do not say anything else or give any other information. Only answer the query. --------------------------\n
+        Below is the text that's been on my screen recently. ------------- \(string) ------------------ Above is the text that's been on my screen recently. Please answer whatever I ask using the provided information about what has been on the screen recently. Do not say anything else or give any other information. Only answer the query. --------------------------\n
         """
 
         pasteboard.setString(finalContents, forType: .string)
