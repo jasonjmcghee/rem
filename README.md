@@ -1,3 +1,5 @@
+![image](https://github.com/jasonjmcghee/rem/assets/1522149/bc7368dc-90b5-42a3-abba-9d365b368ddb)
+
 # <img src="rem/Assets.xcassets/AppIcon.appiconset/AppIcon128x128@2x.png" width=24 /> rem
 
 🧠 Remember everything. (very alpha - [download anyway](https://github.com/jasonjmcghee/rem/releases))
