@@ -46,4 +46,17 @@ class ImageHelper {
             logger.error("Error writing PNG file: \(error)")
         }
     }
+
+    static func saveCGImage(image: CGImage, path: String) {
+       saveNSImage(image: NSImage(cgImage: image, size: NSZeroSize), path: path)
+    }
+
+    static func cropImage(image: CGImage, frame: CGRect, scale: CGFloat) -> CGImage? {
+        let cropZone = CGRect(
+                x: frame.origin.x * scale,
+                y: frame.origin.y * scale,
+                width: frame.size.width * scale,
+                height: frame.size.height * scale)
+        return image.cropping(to: cropZone)
+    }
 }

@@ -303,14 +303,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             
             if settingsManager.settings.onlyOCRFrontmostWindow {
                 // User wants to perform OCR on only active window.
+
+                // We need to determine the scale factor for cropping.  CGImage is
+                // measured in pixels, display sizes are measured in points.
+                let scale = max(CGFloat(image.width) / CGFloat(display.width), CGFloat(image.height) / CGFloat(display.height))
+
                 if
-                    // let window = shareableContent.windows.first(where: { $0.owningApplication?.processID == NSWorkspace.shared.frontmostApplication?.processIdentifier }),
-                    let app = NSWorkspace.shared.frontmostApplication,
-                    let bounds = WindowHelper.shared.getActiveWindowBounds(forApp: app),
-                    let cropped = image.cropping(to: bounds)
+                    let window = shareableContent.windows.first(where: { $0.isOnScreen && $0.owningApplication?.processID == NSWorkspace.shared.frontmostApplication?.processIdentifier }),
+                    let cropped = ImageHelper.cropImage(image: image, frame: window.frame, scale: scale)
                 {
-                    logger.debug("bounds \(String(describing: bounds))")
-                    logger.debug("cropped image \(String(describing: cropped))")
                     self.performOCR(frameId: frameId, on: cropped)
                 }
             } else {
@@ -511,11 +512,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             Task {
                 do {
                     let configuration = ImageAnalyzer.Configuration([.text])
-                    self.logger.debug("Start OCR ...")
                     let nsImage = NSImage(cgImage: image, size: NSZeroSize)
                     let analysis = try await self.imageAnalyzer.analyze(nsImage, orientation: CGImagePropertyOrientation.up, configuration: configuration)
                     let textToAssociate = analysis.transcript
-                    self.logger.debug("Analysed text: \(textToAssociate)")
+                    // self.logger.debug("Analysed text: \(textToAssociate)")
                     var texts = [textToAssociate]
                     if self.settingsManager.settings.saveEverythingCopiedToClipboard {
                         let newClipboardText = ClipboardManager.shared.getClipboardIfChanged() ?? ""
