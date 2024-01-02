@@ -21,9 +21,6 @@ Please log any bugs / issues you find!
 
 Looking at this code and grimacing? Want to help turn this project into something awesome? Please contribute. I haven't written Swift since 2017. I'm sure you'll write better code than me.
 
-Please look at https://github.com/jasonjmcghee/rem/issues/3 and if you _didn't_ experience anything let us know!
-If you can help solve it, please do!
-
 ---
 
 I think the idea of recording everything you see has the potential to change how we interact
