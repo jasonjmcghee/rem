@@ -21,16 +21,13 @@ Please log any bugs / issues you find!
 
 Looking at this code and grimacing? Want to help turn this project into something awesome? Please contribute. I haven't written Swift since 2017. I'm sure you'll write better code than me.
 
-Please look at https://github.com/jasonjmcghee/rem/issues/3 and if you _didn't_ experience anything let us know!
-If you can help solve it, please do!
-
 ---
 
 I think the idea of recording everything you see has the potential to change how we interact
 with our computers, and believe it should be open source.
 
 Also, from a privacy / security perspective, this is like... pretty scary stuff, and I want the code open
-so we know for certain that nothing is leaving your laptop. Even logging to Sentry has the potential to
+so we know for certain that nothing is leaving your laptop. Even telemetry has the potential to
 leak private info.
 
 This is 100% local. Please, read the code yourself.
