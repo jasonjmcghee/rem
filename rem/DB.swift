@@ -244,14 +244,30 @@ class DatabaseManager {
     }
     
     func search(searchText: String, limit: Int = 9, offset: Int = 0) -> [(frameId: Int64, fullText: String, applicationName: String?, timestamp: Date, filePath: String, offsetIndex: Int64)] {
-        let query = allText
+        var query = allText
             .join(frames, on: frames[id] == allText[frameId])
             .join(videoChunks, on: frames[chunkId] == videoChunks[id])
-            .filter(text.match("*\(searchText)*"))
             .select(allText[frameId], text, frames[activeApplicationName], frames[timestamp], videoChunks[filePath], frames[offsetIndex])
             .limit(limit, offset: offset)
         
         var results: [(Int64, String, String?, Date, String, Int64)] = []
+
+        if searchText.hasPrefix("!") {
+            let components = searchText.components(separatedBy: " ")
+            let appName = components.first?.dropFirst() ?? ""
+            let textToSearch = components.dropFirst().joined(separator: " ")
+            
+            if textToSearch.isEmpty {
+                query = query.filter(frames[activeApplicationName].like("%\(appName)%"))
+            } else {
+                query = query.filter(frames[activeApplicationName].like("%\(appName)%") && text.like("%\(textToSearch)%"))
+            }
+        } else {
+            //normal search
+            //uncommenting the following line allows to search both text and app names at the same time
+            query = query.filter(text.like("%\(searchText)%")) // || frames[activeApplicationName].like("%\(searchText)%"))
+        }
+        
         do {
             for row in try db.prepare(query) {
                 let frameId = row[allText[frameId]]

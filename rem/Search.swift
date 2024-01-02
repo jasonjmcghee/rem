@@ -136,6 +136,7 @@ class SearchResult: ObservableObject, Identifiable {
 //                    .replacingOccurrences(of: "\\s+", with: "\\s*", options: .regularExpression)
                 .replacingOccurrences(of: "(", with: "\\(")
                 .replacingOccurrences(of: ")", with: "\\)")
+                .replacingOccurrences(of: #"!([^ ]*) "#, with: "", options: .regularExpression)
             
             if let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive),
                let match = regex.firstMatch(in: text, options: [], range: NSRange(location: 0, length: text.utf16.count)) {
