@@ -57,7 +57,7 @@ struct SearchBar: View {
                         onSearch()
                     }
                 } // Trigger search when user submits
-                .onChange(of: text) {
+                .onChange(of: text) { _ in
                     debounceSearch.debounce {
                         Task {
                             onSearch()
@@ -402,8 +402,3 @@ extension View {
         self.modifier(ScrollViewOffsetModifier(onBottomReached: action))
     }
 }
-
-#Preview("Hello", traits: .defaultLayout) {
-    SearchView(onThumbnailClick: { _ in })
-}
-
