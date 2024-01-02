@@ -48,9 +48,9 @@ struct SettingsView: View {
                 .padding(.bottom)
             Form {
                 Toggle("Remember everything copied to clipboard", isOn: $settingsManager.settings.saveEverythingCopiedToClipboard)
-                    .onChange(of: settingsManager.settings.saveEverythingCopiedToClipboard) { settingsManager.saveSettings() }
+                    .onChange(of: settingsManager.settings.saveEverythingCopiedToClipboard) { _ in settingsManager.saveSettings() }
                 Toggle("Allow opening / closing timeline with CMD + Scroll", isOn: $settingsManager.settings.enableCmdScrollShortcut)
-                    .onChange(of: settingsManager.settings.enableCmdScrollShortcut) { settingsManager.saveSettings() }
+                    .onChange(of: settingsManager.settings.enableCmdScrollShortcut) { _ in settingsManager.saveSettings() }
             }
         }
         .padding()
