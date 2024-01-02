@@ -46,7 +46,7 @@ struct TimelineView: View {
             )
                 .frame(width: frame.width, height: frame.height)
                 .ignoresSafeArea(.all)
-                .onChange(of: viewModel.currentFrameIndex) {
+                .onChange(of: viewModel.currentFrameIndex) { _ in
                     analyzeCurrentImage()
                 }
                 .onAppear {
