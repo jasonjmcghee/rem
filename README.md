@@ -27,7 +27,7 @@ I think the idea of recording everything you see has the potential to change how
 with our computers, and believe it should be open source.
 
 Also, from a privacy / security perspective, this is like... pretty scary stuff, and I want the code open
-so we know for certain that nothing is leaving your laptop. Even logging to Sentry has the potential to
+so we know for certain that nothing is leaving your laptop. Even telemetry has the potential to
 leak private info.
 
 This is 100% local. Please, read the code yourself.
