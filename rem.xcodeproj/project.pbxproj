@@ -34,6 +34,9 @@
 		BF5FEB8F2B41AF6900744FC2 /* WindowHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF5FEB8D2B41AF6900744FC2 /* WindowHelper.swift */; };
 		BF5FEB912B41D08F00744FC2 /* ImageUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF5FEB902B41D08F00744FC2 /* ImageUtils.swift */; };
 		BF5FEB922B41D08F00744FC2 /* ImageUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF5FEB902B41D08F00744FC2 /* ImageUtils.swift */; };
+		BF5FEBFB2B44B26800744FC2 /* ImageHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF5FEBFA2B44B26800744FC2 /* ImageHelper.swift */; };
+		BF5FEBFC2B44B26800744FC2 /* ImageHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF5FEBFA2B44B26800744FC2 /* ImageHelper.swift */; };
+		BF5FEBFD2B44B26800744FC2 /* ImageHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF5FEBFA2B44B26800744FC2 /* ImageHelper.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -224,6 +227,7 @@
 		96F062172B35111D00695621 /* Search.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Search.swift; sourceTree = "<group>"; };
 		BF5FEB8D2B41AF6900744FC2 /* WindowHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowHelper.swift; sourceTree = "<group>"; };
 		BF5FEB902B41D08F00744FC2 /* ImageUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageUtils.swift; sourceTree = "<group>"; };
+		BF5FEBFA2B44B26800744FC2 /* ImageHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageHelper.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -290,6 +294,7 @@
 			children = (
 				969F3F092B3B7F760085787B /* Info.plist */,
 				961C96122B2EB7DB0093F228 /* TimelineView.swift */,
+				BF5FEBFA2B44B26800744FC2 /* ImageHelper.swift */,
 				961C95D92B2E19B30093F228 /* remApp.swift */,
 				BF5FEB902B41D08F00744FC2 /* ImageUtils.swift */,
 				961C95DB2B2E19B30093F228 /* ContentView.swift */,
@@ -674,6 +679,7 @@
 				969F3F0D2B3CCEC30085787B /* Ask.swift in Sources */,
 				96DBA3E72B403ED90000CFBE /* Timings.swift in Sources */,
 				BF5FEB912B41D08F00744FC2 /* ImageUtils.swift in Sources */,
+				BF5FEBFB2B44B26800744FC2 /* ImageHelper.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -682,6 +688,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				961C95EC2B2E19B40093F228 /* remTests.swift in Sources */,
+				BF5FEBFC2B44B26800744FC2 /* ImageHelper.swift in Sources */,
 				BF5FEB8F2B41AF6900744FC2 /* WindowHelper.swift in Sources */,
 				BF5FEB922B41D08F00744FC2 /* ImageUtils.swift in Sources */,
 			);
@@ -693,6 +700,7 @@
 			files = (
 				961C95F62B2E19B40093F228 /* remUITests.swift in Sources */,
 				961C95F82B2E19B40093F228 /* remUITestsLaunchTests.swift in Sources */,
+				BF5FEBFD2B44B26800744FC2 /* ImageHelper.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
