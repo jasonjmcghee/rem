@@ -72,7 +72,6 @@ struct SearchBar: View {
                 }
                 .padding(.horizontal, 10)
             
-            // Application Filter Dropdown
             Picker("Select App", selection: $selectedAppFilterIndex) {
                 ForEach(applicationNameFilter.indices, id: \.self) { index in
                     Text(applicationNameFilter[index])
@@ -81,10 +80,14 @@ struct SearchBar: View {
             }
             .pickerStyle(.menu)
             .onChange(of: selectedAppFilterIndex) { _ in
-                    selectedFilterApp = applicationNameFilter[selectedAppFilterIndex]
-                onSearch()
+                debounceSearch.debounce {
+                    Task {
+                        selectedFilterApp = applicationNameFilter[selectedAppFilterIndex]
+                        onSearch()
+                    }
+                }
             }
-            .frame(width: 200) // Adjust width as needed
+            .frame(width: 200)
         }
     }
 }
