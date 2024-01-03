@@ -11,6 +11,7 @@ import ScreenCaptureKit
 import Vision
 import VisionKit
 import CoreGraphics
+import ScriptingBridge
 import os
 
 final class MainWindow: NSWindow {
@@ -300,6 +301,24 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             guard let image = CGDisplayCreateImage(display.displayID, rect: display.frame) else { return }
             let frameId = DatabaseManager.shared.insertFrame(activeApplicationName: activeApplicationName)
             
+            if settingsManager.settings.onlyOCRFrontmostWindow {
+                // User wants to perform OCR on only active window.
+
+                // We need to determine the scale factor for cropping.  CGImage is
+                // measured in pixels, display sizes are measured in points.
+                let scale = max(CGFloat(image.width) / CGFloat(display.width), CGFloat(image.height) / CGFloat(display.height))
+
+                if
+                    let window = shareableContent.windows.first(where: { $0.isOnScreen && $0.owningApplication?.processID == NSWorkspace.shared.frontmostApplication?.processIdentifier }),
+                    let cropped = ImageHelper.cropImage(image: image, frame: window.frame, scale: scale)
+                {
+                    self.performOCR(frameId: frameId, on: cropped)
+                }
+            } else {
+                // default: User wants to perform OCR on full display.
+                self.performOCR(frameId: frameId, on: image)
+            }
+
             await processScreenshot(frameId: frameId, image: image, frame: display.frame)
             
             screenshotQueue.asyncAfter(deadline: .now() + 2) { [weak self] in
@@ -349,7 +368,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 //    }
     
     private func processScreenshot(frameId: Int64, image: CGImage, frame: CGRect) async {
-        self.performOCR(frameId: frameId, on: image, frame: frame)
         let bitmapRep = NSBitmapImageRep(cgImage: image)
         guard let data = bitmapRep.representation(using: .png, properties: [:]) else { return }
         
@@ -378,7 +396,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if let savedir = RemFileManager.shared.getSaveDir() {
             let outputPath = savedir.appendingPathComponent("output-\(Date().timeIntervalSince1970).mp4").path
             
-            DatabaseManager.shared.startNewVideoChunk(filePath: outputPath)
+            let _ = DatabaseManager.shared.startNewVideoChunk(filePath: outputPath)
             
             // Setup the FFmpeg process for the chunk
             let ffmpegProcess = Process()
@@ -414,7 +432,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
 
             // Write the chunk data to the FFmpeg process
-            for (index, data) in chunk.enumerated() {
+            for (_, data) in chunk.enumerated() {
                 do {
                     try ffmpegInputPipe.fileHandleForWriting.write(contentsOf: data)
                 } catch {
@@ -489,23 +507,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     
-    private func performOCR(frameId: Int64, on image: CGImage, frame: CGRect) {
+    private func performOCR(frameId: Int64, on image: CGImage) {
         ocrQueue.async {
-            // Select only a region... / active window?
-//            let invWidth = 1 / CGFloat(image.width)
-//            let invHeight = 1 / CGFloat(image.height)
-//            let regionOfInterest = CGRect(
-//                x: min(max(0, frame.minX * invWidth), 1),
-//                y: min(max(0, frame.minY * invHeight), 1),
-//                width: min(max(0, frame.width * invWidth), 1),
-//                height: min(max(0, frame.height * invHeight), 1)
-//            )
             Task {
                 do {
                     let configuration = ImageAnalyzer.Configuration([.text])
-                    let nsImage = NSImage(cgImage: image, size: NSSize(width: image.width, height: image.height))
+                    let nsImage = NSImage(cgImage: image, size: NSZeroSize)
                     let analysis = try await self.imageAnalyzer.analyze(nsImage, orientation: CGImagePropertyOrientation.up, configuration: configuration)
                     let textToAssociate = analysis.transcript
+                    // self.logger.debug("Analysed text: \(textToAssociate)")
                     var texts = [textToAssociate]
                     if self.settingsManager.settings.saveEverythingCopiedToClipboard {
                         let newClipboardText = ClipboardManager.shared.getClipboardIfChanged() ?? ""
