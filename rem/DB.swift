@@ -26,6 +26,8 @@ class DatabaseManager {
     
     private let videoChunks = Table("video_chunks")
     private let frames = Table("frames")
+    private let uniqueAppNames = Table("unique_application_names")
+
     let allText = VirtualTable("allText")
     
     private let id = Expression<Int64>("id")
@@ -59,6 +61,7 @@ class DatabaseManager {
             try db.run(videoChunks.drop(ifExists: true))
             try db.run(frames.drop(ifExists: true))
             try db.run(allText.drop(ifExists: true))
+            try db.run(uniqueAppNames.drop(ifExists: true))
         } catch {
             print("Failed to delete tables")
         }
@@ -81,6 +84,11 @@ class DatabaseManager {
             t.column(offsetIndex)
             t.column(timestamp)
             t.column(activeApplicationName)
+        })
+        
+        try! db.run(uniqueAppNames.create(ifNotExists: true) { t in
+            t.column(id, primaryKey: .autoincrement)
+            t.column(activeApplicationName, unique: true)
         })
         
         let config = FTS4Config()
@@ -137,12 +145,40 @@ class DatabaseManager {
     }
     
     func insertFrame(activeApplicationName: String?) -> Int64 {
-        // logger.debug("inserting frame: \(self.lastFrameId + 1) at offset: \(self.currentFrameOffset)")
         let insert = frames.insert(chunkId <- currentChunkId, timestamp <- Date(), offsetIndex <- currentFrameOffset, self.activeApplicationName <- activeApplicationName)
         let id = try! db.run(insert)
         currentFrameOffset += 1
         lastFrameId = id
+        
+        if let appName = activeApplicationName {
+            //will check if the app name is already in the database.
+            insertUniqueApplicationNamesIfNeeded(appName)
+        }
+        
         return id
+    }
+    
+    private func insertUniqueApplicationNamesIfNeeded(_ appName: String) {
+        let query = uniqueAppNames.filter(activeApplicationName == appName)
+        
+        do {
+            let count = try db.scalar(query.count)
+            if count == 0 {
+                print("insert")
+                insertUniqueApplicationNames(appName)
+            }
+        } catch {
+            print("Error checking existence of app name: \(error)")
+        }
+    }
+
+    func insertUniqueApplicationNames(_ appName: String) {
+        let insert = uniqueAppNames.insert(activeApplicationName <- appName)
+        do {
+            try db.run(insert)
+        } catch {
+            print("Error inserting unique application name: \(error)")
+        }
     }
     
     func insertTextForFrame(frameId: Int64, text: String) {
@@ -292,23 +328,22 @@ class DatabaseManager {
     }
     
     func getAllApplicationNames() -> [String] {
-            var applicationNames: [String] = []
-            
-            do {
-                let distinctAppsQuery = frames.select(distinct: activeApplicationName)
-                for row in try db.prepare(distinctAppsQuery) {
-                    if let appName = row[activeApplicationName] {
-                        applicationNames.append(appName)
-                    }
+        var applicationNames: [String] = []
+        
+        do {
+            let distinctAppsQuery = uniqueAppNames.select(activeApplicationName)
+            for row in try db.prepare(distinctAppsQuery) {
+                if let appName = row[activeApplicationName] {
+                    applicationNames.append(appName)
                 }
-            } catch {
-                print("Error fetching application names: \(error)")
             }
-            
-            return applicationNames
+        } catch {
+            print("Error fetching application names: \(error)")
         }
         
-    
+        return applicationNames
+    }
+
     func getImage(index: Int64, maxSize: CGSize? = nil) -> CGImage? {
         guard let frameData = DatabaseManager.shared.getFrame(forIndex: index) else { return nil }
         
