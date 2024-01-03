@@ -30,7 +30,7 @@ struct SearchBar: View {
     @Namespace var nspace
     @FocusState var focused: Bool?
     var debounceSearch = Debouncer(delay: 0.3)
-    var applicationNameFilter: [String]
+    @State var applicationNameFilter: [String]
     @Binding var selectedFilterAppIndex: Int
     @Binding var selectedFilterApp: String
     
