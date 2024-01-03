@@ -31,7 +31,7 @@ struct SearchBar: View {
     @FocusState var focused: Bool?
     var debounceSearch = Debouncer(delay: 0.3)
     var applicationNameFilter: [String]
-    @Binding var selectedAppFilterIndex: Int
+    @Binding var selectedFilterAppIndex: Int
     @Binding var selectedFilterApp: String
     
     var body: some View {
@@ -72,23 +72,40 @@ struct SearchBar: View {
                 }
                 .padding(.horizontal, 10)
             
-            Picker("Select App", selection: $selectedAppFilterIndex) {
-                ForEach(applicationNameFilter.indices, id: \.self) { index in
-                    Text(applicationNameFilter[index])
-                        .tag(index)
-                }
-            }
-            .pickerStyle(.menu)
-            .onChange(of: selectedAppFilterIndex) { _ in
-                debounceSearch.debounce {
-                    Task {
-                        selectedFilterApp = applicationNameFilter[selectedAppFilterIndex]
-                        onSearch()
-                    }
-                }
-            }
-            .frame(width: 200)
+            FilterPicker(
+                applicationNameFilter: applicationNameFilter,
+                selectedFilterAppIndex: $selectedFilterAppIndex,
+                selectedFilterApp: $selectedFilterApp,
+                debounceSearch: debounceSearch,
+                onSearch: onSearch
+            )
         }
+    }
+}
+
+struct FilterPicker: View {
+    var applicationNameFilter: [String]
+    @Binding var selectedFilterAppIndex: Int
+    @Binding var selectedFilterApp: String
+    var debounceSearch: Debouncer
+    var onSearch: () -> Void
+    
+    var body: some View {
+        Picker("Select App", selection: $selectedFilterAppIndex) {
+            ForEach(applicationNameFilter.indices, id: \.self) { index in
+                Text(applicationNameFilter[index])
+                    .tag(index)
+            }
+        }
+        .pickerStyle(.menu)
+        .onChange(of: selectedFilterAppIndex) { newIndex in
+            guard newIndex >= 0 && newIndex < applicationNameFilter.count else {
+                return
+            }
+            selectedFilterApp = applicationNameFilter[selectedFilterAppIndex]
+            onSearch()
+        }
+        .frame(width: 200)
     }
 }
 
@@ -288,7 +305,7 @@ struct ResultsView: View {
                     text: $searchText,
                     onSearch: performSearch,
                     applicationNameFilter: getAppFilterData(),
-                    selectedAppFilterIndex: $selectedFilterAppIndex,
+                    selectedFilterAppIndex: $selectedFilterAppIndex,
                     selectedFilterApp: $selectedFilterApp
                 )
             
