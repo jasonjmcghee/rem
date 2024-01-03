@@ -12,6 +12,7 @@ import SwiftUI
 struct AppSettings: Codable {
     var saveEverythingCopiedToClipboard: Bool
     var enableCmdScrollShortcut: Bool
+    var onlyOCRFrontmostWindow: Bool = false
 }
 
 // The settings manager handles saving and loading the settings
@@ -51,6 +52,8 @@ struct SettingsView: View {
                     .onChange(of: settingsManager.settings.saveEverythingCopiedToClipboard) { _ in settingsManager.saveSettings() }
                 Toggle("Allow opening / closing timeline with CMD + Scroll", isOn: $settingsManager.settings.enableCmdScrollShortcut)
                     .onChange(of: settingsManager.settings.enableCmdScrollShortcut) { _ in settingsManager.saveSettings() }
+                Toggle("Only OCR region of active application window", isOn: $settingsManager.settings.onlyOCRFrontmostWindow)
+                    .onChange(of: settingsManager.settings.onlyOCRFrontmostWindow) { _ in settingsManager.saveSettings() }
             }
         }
         .padding()
