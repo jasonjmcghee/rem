@@ -30,9 +30,9 @@ struct SearchBar: View {
     @Namespace var nspace
     @FocusState var focused: Bool?
     var debounceSearch = Debouncer(delay: 0.3)
-    @State var applicationNameFilter: [String]
     @Binding var selectedFilterAppIndex: Int
     @Binding var selectedFilterApp: String
+    @State private var applicationFilterArray: [String] = []
     
     var body: some View {
         HStack {
@@ -73,7 +73,7 @@ struct SearchBar: View {
                 .padding(.horizontal, 10)
             
             FilterPicker(
-                applicationNameFilter: applicationNameFilter,
+                applicationFilterArray: applicationFilterArray,
                 selectedFilterAppIndex: $selectedFilterAppIndex,
                 selectedFilterApp: $selectedFilterApp,
                 debounceSearch: debounceSearch,
@@ -84,7 +84,7 @@ struct SearchBar: View {
 }
 
 struct FilterPicker: View {
-    var applicationNameFilter: [String]
+    @State var applicationFilterArray: [String]
     @Binding var selectedFilterAppIndex: Int
     @Binding var selectedFilterApp: String
     var debounceSearch: Debouncer
@@ -92,20 +92,29 @@ struct FilterPicker: View {
     
     var body: some View {
         Picker("Select App", selection: $selectedFilterAppIndex) {
-            ForEach(applicationNameFilter.indices, id: \.self) { index in
-                Text(applicationNameFilter[index])
+            ForEach(applicationFilterArray.indices, id: \.self) { index in
+                Text(applicationFilterArray[index])
                     .tag(index)
             }
         }
+        .onHover(perform: { hovering in
+            updateAppFilterData()
+        })
         .pickerStyle(.menu)
         .onChange(of: selectedFilterAppIndex) { newIndex in
-            guard newIndex >= 0 && newIndex < applicationNameFilter.count else {
+            guard newIndex >= 0 && newIndex < applicationFilterArray.count else {
                 return
             }
-            selectedFilterApp = applicationNameFilter[selectedFilterAppIndex]
+            selectedFilterApp = applicationFilterArray[selectedFilterAppIndex]
             onSearch()
         }
         .frame(width: 200)
+    }
+    private func updateAppFilterData() {
+        var appFilters = ["All apps"]
+        let allAppNames = DatabaseManager.shared.getAllApplicationNames()
+        appFilters.append(contentsOf: allAppNames)
+        applicationFilterArray = appFilters
     }
 }
 
@@ -304,7 +313,6 @@ struct ResultsView: View {
                 SearchBar(
                     text: $searchText,
                     onSearch: performSearch,
-                    applicationNameFilter: getAppFilterData(),
                     selectedFilterAppIndex: $selectedFilterAppIndex,
                     selectedFilterApp: $selectedFilterApp
                 )
@@ -367,13 +375,6 @@ struct ResultsView: View {
             }
             return mapResultsToSearchResult(filteredResults)
         }
-    }
-    
-    private func getAppFilterData() -> [String] {
-        var appFilters = ["All apps"]
-        let allAppNames = DatabaseManager.shared.getAllApplicationNames()
-        appFilters.append(contentsOf: allAppNames)
-        return appFilters
     }
     
     private func mapResultsToSearchResult(_ data: [(frameId: Int64, fullText: String?, applicationName: String?, timestamp: Date, filePath: String, offsetIndex: Int64)]) -> [SearchResult] {
