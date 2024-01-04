@@ -303,10 +303,12 @@ class DatabaseManager {
         }
         return results
     }
+    
     func searchFilteredByAppName(appName: String, limit: Int = 9, offset: Int = 0) -> [(frameId: Int64, fullText: String, applicationName: String?, timestamp: Date, filePath: String, offsetIndex: Int64)] {
         let query = frames
             .join(videoChunks, on: frames[chunkId] == videoChunks[id])
-            .filter(frames[activeApplicationName].lowercaseString == appName.lowercased()) // Apply filter by application name
+            .join(uniqueAppNames, on: uniqueAppNames[activeApplicationName] == frames[activeApplicationName])
+            .filter(uniqueAppNames[activeApplicationName].lowercaseString == appName.lowercased())
             .select(frames[id], frames[activeApplicationName], frames[timestamp], videoChunks[filePath], frames[offsetIndex])
             .limit(limit, offset: offset)
         
@@ -330,7 +332,8 @@ class DatabaseManager {
         let query = allText
             .join(frames, on: frames[id] == allText[frameId])
             .join(videoChunks, on: frames[chunkId] == videoChunks[id])
-            .filter(text.match("*\(searchText)*") && frames[activeApplicationName].lowercaseString == appName.lowercased()) // Apply filter by application name and search text
+            .join(uniqueAppNames, on: uniqueAppNames[activeApplicationName] == frames[activeApplicationName])
+            .filter(text.match("*\(searchText)*") && uniqueAppNames[activeApplicationName].lowercaseString == appName.lowercased())
             .select(allText[frameId], text, frames[activeApplicationName], frames[timestamp], videoChunks[filePath], frames[offsetIndex])
             .limit(limit, offset: offset)
         
@@ -350,7 +353,6 @@ class DatabaseManager {
         }
         return results
     }
-
 
     
     func getRecentResults(limit: Int = 9, offset: Int = 0) -> [(frameId: Int64, fullText: String?, applicationName: String?, timestamp: Date, filePath: String, offsetIndex: Int64)] {
