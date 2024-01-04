@@ -303,6 +303,55 @@ class DatabaseManager {
         }
         return results
     }
+    func searchFilteredByAppName(appName: String, limit: Int = 9, offset: Int = 0) -> [(frameId: Int64, fullText: String, applicationName: String?, timestamp: Date, filePath: String, offsetIndex: Int64)] {
+        let query = frames
+            .join(videoChunks, on: frames[chunkId] == videoChunks[id])
+            .filter(frames[activeApplicationName].lowercaseString == appName.lowercased()) // Apply filter by application name
+            .select(frames[id], frames[activeApplicationName], frames[timestamp], videoChunks[filePath], frames[offsetIndex])
+            .limit(limit, offset: offset)
+        
+        var results: [(Int64, String, String?, Date, String, Int64)] = []
+        do {
+            for row in try db.prepare(query) {
+                let frameId = row[frames[id]]
+                let applicationName = row[frames[activeApplicationName]]
+                let timestamp = row[frames[timestamp]]
+                let filePath = row[videoChunks[filePath]]
+                let offsetIndex = row[frames[offsetIndex]]
+                results.append((frameId, "", applicationName, timestamp, filePath, offsetIndex))
+            }
+        } catch {
+            print("Search error: \(error)")
+        }
+        return results
+    }
+
+    func searchFilteredByAppNameAndText(appName: String, searchText: String, limit: Int = 9, offset: Int = 0) -> [(frameId: Int64, fullText: String, applicationName: String?, timestamp: Date, filePath: String, offsetIndex: Int64)] {
+        let query = allText
+            .join(frames, on: frames[id] == allText[frameId])
+            .join(videoChunks, on: frames[chunkId] == videoChunks[id])
+            .filter(text.match("*\(searchText)*") && frames[activeApplicationName].lowercaseString == appName.lowercased()) // Apply filter by application name and search text
+            .select(allText[frameId], text, frames[activeApplicationName], frames[timestamp], videoChunks[filePath], frames[offsetIndex])
+            .limit(limit, offset: offset)
+        
+        var results: [(Int64, String, String?, Date, String, Int64)] = []
+        do {
+            for row in try db.prepare(query) {
+                let frameId = row[allText[frameId]]
+                let matchedText = row[text]
+                let applicationName = row[frames[activeApplicationName]]
+                let timestamp = row[frames[timestamp]]
+                let filePath = row[videoChunks[filePath]]
+                let offsetIndex = row[frames[offsetIndex]]
+                results.append((frameId, matchedText, applicationName, timestamp, filePath, offsetIndex))
+            }
+        } catch {
+            print("Search error: \(error)")
+        }
+        return results
+    }
+
+
     
     func getRecentResults(limit: Int = 9, offset: Int = 0) -> [(frameId: Int64, fullText: String?, applicationName: String?, timestamp: Date, filePath: String, offsetIndex: Int64)] {
         let query = frames

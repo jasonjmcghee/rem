@@ -358,24 +358,23 @@ struct ResultsView: View {
     private func getSearchResults() -> [SearchResult] {
         var results: [(frameId: Int64, fullText: String?, applicationName: String?, timestamp: Date, filePath: String, offsetIndex: Int64)] = []
 
-        if searchText.isEmpty {
-            results = DatabaseManager.shared.getRecentResults(limit: limit, offset: offset)
+        if selectedFilterAppIndex == 0 {
+            if searchText.isEmpty {
+                results = DatabaseManager.shared.getRecentResults(limit: limit, offset: offset)
+            } else {
+                results = DatabaseManager.shared.search(searchText: searchText, limit: limit, offset: offset)
+            }
         } else {
-            results = DatabaseManager.shared.search(searchText: searchText, limit: limit, offset: offset)
+            if searchText.isEmpty {
+                results = DatabaseManager.shared.searchFilteredByAppName(appName: selectedFilterApp, limit: limit, offset: offset)
+            } else {
+                results = DatabaseManager.shared.searchFilteredByAppNameAndText(appName: selectedFilterApp, searchText: searchText, limit: limit, offset: offset)
+            }
         }
         
-        if selectedFilterAppIndex == 0 {
-            return mapResultsToSearchResult(results)
-        } else {
-            let filteredResults = results.filter { result in
-                if let appName = result.applicationName {
-                    return appName.lowercased() == selectedFilterApp.lowercased()
-                }
-                return false
-            }
-            return mapResultsToSearchResult(filteredResults)
-        }
+        return mapResultsToSearchResult(results)
     }
+
     
     private func mapResultsToSearchResult(_ data: [(frameId: Int64, fullText: String?, applicationName: String?, timestamp: Date, filePath: String, offsetIndex: Int64)]) -> [SearchResult] {
             let searchResults = data.map { item in
