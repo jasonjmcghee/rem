@@ -26,6 +26,8 @@ class DatabaseManager {
     
     private let videoChunks = Table("video_chunks")
     private let frames = Table("frames")
+    private let uniqueAppNames = Table("unique_application_names")
+
     let allText = VirtualTable("allText")
     
     private let id = Expression<Int64>("id")
@@ -59,6 +61,7 @@ class DatabaseManager {
             try db.run(videoChunks.drop(ifExists: true))
             try db.run(frames.drop(ifExists: true))
             try db.run(allText.drop(ifExists: true))
+            try db.run(uniqueAppNames.drop(ifExists: true))
         } catch {
             print("Failed to delete tables")
         }
@@ -83,6 +86,28 @@ class DatabaseManager {
             t.column(activeApplicationName)
         })
         
+        try! db.run(uniqueAppNames.create(ifNotExists: true) { t in
+            t.column(id, primaryKey: .autoincrement)
+            t.column(activeApplicationName, unique: true)
+        })
+        // Seed the `uniqueAppNames` table if empty
+        do {
+            if try db.scalar(uniqueAppNames.count) == 0 {
+                let query = frames.select(distinct: activeApplicationName)
+                var appNames: [String] = []
+                for row in try db.prepare(query) {
+                    if let appName = row[activeApplicationName] {
+                        appNames.append(appName)
+                    }
+                }
+                let insert = uniqueAppNames.insertMany(
+                    appNames.map { name in [activeApplicationName <- name] }
+                )
+                try db.run(insert)
+            }
+        } catch {
+            print("Error seeding database with app names: \(error)")
+        }
         let config = FTS4Config()
             .column(frameId, [.unindexed])
             .column(text)
@@ -137,12 +162,39 @@ class DatabaseManager {
     }
     
     func insertFrame(activeApplicationName: String?) -> Int64 {
-        // logger.debug("inserting frame: \(self.lastFrameId + 1) at offset: \(self.currentFrameOffset)")
         let insert = frames.insert(chunkId <- currentChunkId, timestamp <- Date(), offsetIndex <- currentFrameOffset, self.activeApplicationName <- activeApplicationName)
         let id = try! db.run(insert)
         currentFrameOffset += 1
         lastFrameId = id
+        
+        if let appName = activeApplicationName {
+            //will check if the app name is already in the database.
+            insertUniqueApplicationNamesIfNeeded(appName)
+        }
+        
         return id
+    }
+    
+    private func insertUniqueApplicationNamesIfNeeded(_ appName: String) {
+        let query = uniqueAppNames.filter(activeApplicationName == appName)
+        
+        do {
+            let count = try db.scalar(query.count)
+            if count == 0 {
+                insertUniqueApplicationNames(appName)
+            }
+        } catch {
+            print("Error checking existence of app name: \(error)")
+        }
+    }
+
+    func insertUniqueApplicationNames(_ appName: String) {
+        let insert = uniqueAppNames.insert(activeApplicationName <- appName)
+        do {
+            try db.run(insert)
+        } catch {
+            print("Error inserting unique application name: \(error)")
+        }
     }
     
     func insertTextForFrame(frameId: Int64, text: String) {
@@ -243,13 +295,27 @@ class DatabaseManager {
         return 0
     }
     
-    func search(searchText: String, limit: Int = 9, offset: Int = 0) -> [(frameId: Int64, fullText: String, applicationName: String?, timestamp: Date, filePath: String, offsetIndex: Int64)] {
-        let query = allText
+    func search(appName: String = "", searchText: String, limit: Int = 9, offset: Int = 0) -> [(frameId: Int64, fullText: String, applicationName: String?, timestamp: Date, filePath: String, offsetIndex: Int64)] {
+        var partialQuery = allText
             .join(frames, on: frames[id] == allText[frameId])
             .join(videoChunks, on: frames[chunkId] == videoChunks[id])
-            .filter(text.match("*\(searchText)*"))
-            .select(allText[frameId], text, frames[activeApplicationName], frames[timestamp], videoChunks[filePath], frames[offsetIndex])
-            .limit(limit, offset: offset)
+
+        if !appName.isEmpty {
+            partialQuery = partialQuery.join(uniqueAppNames, on: uniqueAppNames[activeApplicationName] == frames[activeApplicationName])
+        }
+
+        var query = partialQuery
+                     .filter(text.match("*\(searchText)*"))
+
+        if !appName.isEmpty && searchText.isEmpty {
+            query = partialQuery
+                     .filter(uniqueAppNames[activeApplicationName].lowercaseString == appName.lowercased())
+        } else if !appName.isEmpty && !searchText.isEmpty {
+            query = query.filter(uniqueAppNames[activeApplicationName].lowercaseString == appName.lowercased())
+        }
+
+        query = query.select(allText[frameId], text, frames[activeApplicationName], frames[timestamp], videoChunks[filePath], frames[offsetIndex])
+                     .limit(limit, offset: offset)
         
         var results: [(Int64, String, String?, Date, String, Int64)] = []
         do {
@@ -268,12 +334,18 @@ class DatabaseManager {
         return results
     }
     
-    func getRecentResults(limit: Int = 9, offset: Int = 0) -> [(frameId: Int64, fullText: String?, applicationName: String?, timestamp: Date, filePath: String, offsetIndex: Int64)] {
-        let query = frames
+    func getRecentResults(selectedFilterApp: String = "", limit: Int = 9, offset: Int = 0) -> [(frameId: Int64, fullText: String?, applicationName: String?, timestamp: Date, filePath: String, offsetIndex: Int64)] {
+        var query = frames
             .join(videoChunks, on: frames[chunkId] == videoChunks[id])
             .select(frames[id], frames[activeApplicationName], frames[timestamp], videoChunks[filePath], frames[offsetIndex])
             .order(frames[timestamp].desc)
             .limit(limit, offset: offset)
+
+        if !selectedFilterApp.isEmpty {
+            query = query
+                .join(uniqueAppNames, on: uniqueAppNames[activeApplicationName] == frames[activeApplicationName])
+                .filter(uniqueAppNames[activeApplicationName].lowercaseString == selectedFilterApp.lowercased())
+        }
         
         var results: [(Int64, String?, String?, Date, String, Int64)] = []
         do {
@@ -292,23 +364,22 @@ class DatabaseManager {
     }
     
     func getAllApplicationNames() -> [String] {
-            var applicationNames: [String] = []
-            
-            do {
-                let distinctAppsQuery = frames.select(distinct: activeApplicationName)
-                for row in try db.prepare(distinctAppsQuery) {
-                    if let appName = row[activeApplicationName] {
-                        applicationNames.append(appName)
-                    }
+        var applicationNames: [String] = []
+        
+        do {
+            let distinctAppsQuery = uniqueAppNames.select(activeApplicationName)
+            for row in try db.prepare(distinctAppsQuery) {
+                if let appName = row[activeApplicationName] {
+                    applicationNames.append(appName)
                 }
-            } catch {
-                print("Error fetching application names: \(error)")
             }
-            
-            return applicationNames
+        } catch {
+            print("Error fetching application names: \(error)")
         }
         
-    
+        return applicationNames
+    }
+
     func getImage(index: Int64, maxSize: CGSize? = nil) -> CGImage? {
         guard let frameData = DatabaseManager.shared.getFrame(forIndex: index) else { return nil }
         

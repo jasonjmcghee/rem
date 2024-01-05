@@ -30,9 +30,9 @@ struct SearchBar: View {
     @Namespace var nspace
     @FocusState var focused: Bool?
     var debounceSearch = Debouncer(delay: 0.3)
-    var applicationNameFilter: [String]
     @Binding var selectedFilterAppIndex: Int
     @Binding var selectedFilterApp: String
+    @State private var applicationFilterArray: [String] = []
     
     var body: some View {
         HStack(spacing: 16) {
@@ -76,7 +76,7 @@ struct SearchBar: View {
                 }
 
             FilterPicker(
-                applicationNameFilter: applicationNameFilter,
+                applicationFilterArray: applicationFilterArray,
                 selectedFilterAppIndex: $selectedFilterAppIndex,
                 selectedFilterApp: $selectedFilterApp,
                 debounceSearch: debounceSearch,
@@ -87,7 +87,7 @@ struct SearchBar: View {
 }
 
 struct FilterPicker: View {
-    var applicationNameFilter: [String]
+    @State var applicationFilterArray: [String]
     @Binding var selectedFilterAppIndex: Int
     @Binding var selectedFilterApp: String
     var debounceSearch: Debouncer
@@ -96,21 +96,33 @@ struct FilterPicker: View {
     var body: some View {
         VStack(alignment: .leading) {
             Picker("Application", selection: $selectedFilterAppIndex) {
-                ForEach(applicationNameFilter.indices, id: \.self) { index in
-                    Text(applicationNameFilter[index])
+                ForEach(applicationFilterArray.indices, id: \.self) { index in
+                    Text(applicationFilterArray[index])
                         .tag(index)
                 }
             }
+            .onHover(perform: { hovering in
+              updateAppFilterData()
+            })
+            .onAppear{
+                updateAppFilterData()
+            }
             .pickerStyle(.menu)
             .onChange(of: selectedFilterAppIndex) { newIndex in
-                guard newIndex >= 0 && newIndex < applicationNameFilter.count else {
+                guard newIndex >= 0 && newIndex < applicationFilterArray.count else {
                     return
                 }
-                selectedFilterApp = applicationNameFilter[selectedFilterAppIndex]
+                selectedFilterApp = applicationFilterArray[selectedFilterAppIndex]
                 onSearch()
             }
             .frame(width: 200)
         }
+    }
+    private func updateAppFilterData() {
+        var appFilters = ["All apps"]
+        let allAppNames = DatabaseManager.shared.getAllApplicationNames()
+        appFilters.append(contentsOf: allAppNames)
+        applicationFilterArray = appFilters
     }
 }
 
@@ -179,7 +191,6 @@ class SearchResult: ObservableObject, Identifiable {
 //                    .replacingOccurrences(of: "\\s+", with: "\\s*", options: .regularExpression)
                 .replacingOccurrences(of: "(", with: "\\(")
                 .replacingOccurrences(of: ")", with: "\\)")
-                .replacingOccurrences(of: #"!([^ ]*) "#, with: "", options: .regularExpression)
             
             if let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive),
                let match = regex.firstMatch(in: text, options: [], range: NSRange(location: 0, length: text.utf16.count)) {
@@ -309,7 +320,6 @@ struct ResultsView: View {
                 SearchBar(
                     text: $searchText,
                     onSearch: performSearch,
-                    applicationNameFilter: getAppFilterData(),
                     selectedFilterAppIndex: $selectedFilterAppIndex,
                     selectedFilterApp: $selectedFilterApp
                 )
@@ -355,31 +365,23 @@ struct ResultsView: View {
     private func getSearchResults() -> [SearchResult] {
         var results: [(frameId: Int64, fullText: String?, applicationName: String?, timestamp: Date, filePath: String, offsetIndex: Int64)] = []
 
-        if searchText.isEmpty {
-            results = DatabaseManager.shared.getRecentResults(limit: limit, offset: offset)
+        if selectedFilterAppIndex == 0 {
+            if searchText.isEmpty {
+                results = DatabaseManager.shared.getRecentResults(limit: limit, offset: offset)
+            } else {
+                results = DatabaseManager.shared.search(searchText: searchText, limit: limit, offset: offset)
+            }
         } else {
-            results = DatabaseManager.shared.search(searchText: searchText, limit: limit, offset: offset)
+            if searchText.isEmpty {
+                results = DatabaseManager.shared.getRecentResults(selectedFilterApp: selectedFilterApp, limit: limit, offset: offset)
+            } else {
+                results = DatabaseManager.shared.search(appName: selectedFilterApp, searchText: searchText, limit: limit, offset: offset)
+            }
         }
         
-        if selectedFilterAppIndex == 0 {
-            return mapResultsToSearchResult(results)
-        } else {
-            let filteredResults = results.filter { result in
-                if let appName = result.applicationName {
-                    return appName.lowercased() == selectedFilterApp.lowercased()
-                }
-                return false
-            }
-            return mapResultsToSearchResult(filteredResults)
-        }
+        return mapResultsToSearchResult(results)
     }
-    
-    private func getAppFilterData() -> [String] {
-        var appFilters = ["All apps"]
-        let allAppNames = DatabaseManager.shared.getAllApplicationNames()
-        appFilters.append(contentsOf: allAppNames)
-        return appFilters
-    }
+
     
     private func mapResultsToSearchResult(_ data: [(frameId: Int64, fullText: String?, applicationName: String?, timestamp: Date, filePath: String, offsetIndex: Int64)]) -> [SearchResult] {
             let searchResults = data.map { item in
