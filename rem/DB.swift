@@ -90,7 +90,24 @@ class DatabaseManager {
             t.column(id, primaryKey: .autoincrement)
             t.column(activeApplicationName, unique: true)
         })
-        
+        // Seed the `uniqueAppNames` table if empty
+        do {
+            if try db.scalar(uniqueAppNames.count) == 0 {
+                let query = frames.select(distinct: activeApplicationName)
+                var appNames: [String] = []
+                for row in try db.prepare(query) {
+                    if let appName = row[activeApplicationName] {
+                        appNames.append(appName)
+                    }
+                }
+                let insert = uniqueAppNames.insertMany(
+                    appNames.map { name in [activeApplicationName <- name] }
+                )
+                try db.run(insert)
+            }
+        } catch {
+            print("Error seeding database with app names: \(error)")
+        }
         let config = FTS4Config()
             .column(frameId, [.unindexed])
             .column(text)
