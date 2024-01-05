@@ -164,7 +164,6 @@ class DatabaseManager {
         do {
             let count = try db.scalar(query.count)
             if count == 0 {
-                print("insert")
                 insertUniqueApplicationNames(appName)
             }
         } catch {
@@ -279,13 +278,27 @@ class DatabaseManager {
         return 0
     }
     
-    func search(searchText: String, limit: Int = 9, offset: Int = 0) -> [(frameId: Int64, fullText: String, applicationName: String?, timestamp: Date, filePath: String, offsetIndex: Int64)] {
-        let query = allText
+    func search(appName: String = "", searchText: String, limit: Int = 9, offset: Int = 0) -> [(frameId: Int64, fullText: String, applicationName: String?, timestamp: Date, filePath: String, offsetIndex: Int64)] {
+        var partialQuery = allText
             .join(frames, on: frames[id] == allText[frameId])
             .join(videoChunks, on: frames[chunkId] == videoChunks[id])
-            .filter(text.match("*\(searchText)*"))
-            .select(allText[frameId], text, frames[activeApplicationName], frames[timestamp], videoChunks[filePath], frames[offsetIndex])
-            .limit(limit, offset: offset)
+
+        if !appName.isEmpty {
+            partialQuery = partialQuery.join(uniqueAppNames, on: uniqueAppNames[activeApplicationName] == frames[activeApplicationName])
+        }
+
+        var query = partialQuery
+                     .filter(text.match("*\(searchText)*"))
+
+        if !appName.isEmpty && searchText.isEmpty {
+            query = partialQuery
+                     .filter(uniqueAppNames[activeApplicationName].lowercaseString == appName.lowercased())
+        } else if !appName.isEmpty && !searchText.isEmpty {
+            query = query.filter(uniqueAppNames[activeApplicationName].lowercaseString == appName.lowercased())
+        }
+
+        query = query.select(allText[frameId], text, frames[activeApplicationName], frames[timestamp], videoChunks[filePath], frames[offsetIndex])
+                     .limit(limit, offset: offset)
         
         var results: [(Int64, String, String?, Date, String, Int64)] = []
         do {
@@ -303,57 +316,6 @@ class DatabaseManager {
         }
         return results
     }
-    
-    func searchFilteredByAppName(appName: String, limit: Int = 9, offset: Int = 0) -> [(frameId: Int64, fullText: String, applicationName: String?, timestamp: Date, filePath: String, offsetIndex: Int64)] {
-        let query = frames
-            .join(videoChunks, on: frames[chunkId] == videoChunks[id])
-            .join(uniqueAppNames, on: uniqueAppNames[activeApplicationName] == frames[activeApplicationName])
-            .filter(uniqueAppNames[activeApplicationName].lowercaseString == appName.lowercased())
-            .select(frames[id], frames[activeApplicationName], frames[timestamp], videoChunks[filePath], frames[offsetIndex])
-            .limit(limit, offset: offset)
-        
-        var results: [(Int64, String, String?, Date, String, Int64)] = []
-        do {
-            for row in try db.prepare(query) {
-                let frameId = row[frames[id]]
-                let applicationName = row[frames[activeApplicationName]]
-                let timestamp = row[frames[timestamp]]
-                let filePath = row[videoChunks[filePath]]
-                let offsetIndex = row[frames[offsetIndex]]
-                results.append((frameId, "", applicationName, timestamp, filePath, offsetIndex))
-            }
-        } catch {
-            print("Search error: \(error)")
-        }
-        return results
-    }
-
-    func searchFilteredByAppNameAndText(appName: String, searchText: String, limit: Int = 9, offset: Int = 0) -> [(frameId: Int64, fullText: String, applicationName: String?, timestamp: Date, filePath: String, offsetIndex: Int64)] {
-        let query = allText
-            .join(frames, on: frames[id] == allText[frameId])
-            .join(videoChunks, on: frames[chunkId] == videoChunks[id])
-            .join(uniqueAppNames, on: uniqueAppNames[activeApplicationName] == frames[activeApplicationName])
-            .filter(text.match("*\(searchText)*") && uniqueAppNames[activeApplicationName].lowercaseString == appName.lowercased())
-            .select(allText[frameId], text, frames[activeApplicationName], frames[timestamp], videoChunks[filePath], frames[offsetIndex])
-            .limit(limit, offset: offset)
-        
-        var results: [(Int64, String, String?, Date, String, Int64)] = []
-        do {
-            for row in try db.prepare(query) {
-                let frameId = row[allText[frameId]]
-                let matchedText = row[text]
-                let applicationName = row[frames[activeApplicationName]]
-                let timestamp = row[frames[timestamp]]
-                let filePath = row[videoChunks[filePath]]
-                let offsetIndex = row[frames[offsetIndex]]
-                results.append((frameId, matchedText, applicationName, timestamp, filePath, offsetIndex))
-            }
-        } catch {
-            print("Search error: \(error)")
-        }
-        return results
-    }
-
     
     func getRecentResults(limit: Int = 9, offset: Int = 0) -> [(frameId: Int64, fullText: String?, applicationName: String?, timestamp: Date, filePath: String, offsetIndex: Int64)] {
         let query = frames
