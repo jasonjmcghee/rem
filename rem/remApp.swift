@@ -5,14 +5,14 @@
 //  Created by Jason McGhee on 12/16/23.
 //
 
-import SwiftUI
 import AppKit
+import CoreGraphics
+import os
 import ScreenCaptureKit
+import ScriptingBridge
+import SwiftUI
 import Vision
 import VisionKit
-import CoreGraphics
-import ScriptingBridge
-import os
 
 final class MainWindow: NSWindow {
     override var canBecomeKey: Bool {
@@ -100,16 +100,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Setup Menu
         setupMenu()
         
-        self.observer = self.statusBarItem.button?.observe(\.effectiveAppearance) { _, _ in
+        observer = statusBarItem.button?.observe(\.effectiveAppearance) { _, _ in
             self.setupMenu()
         }
         
         // Monitor for scroll events
-        NSEvent.addGlobalMonitorForEvents(matching: .scrollWheel) { [weak self] (event) in
+        NSEvent.addGlobalMonitorForEvents(matching: .scrollWheel) { [weak self] event in
             self?.handleGlobalScrollEvent(event)
         }
         
-        NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] (event) in
+        NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
             if (self?.searchViewWindow?.isVisible ?? false) && event.keyCode == 53 {
                 DispatchQueue.main.async { [weak self] in
                     self?.closeSearchView()
@@ -123,7 +123,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         
-        NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] (event) in
+        NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             if event.modifierFlags.contains([.command, .shift]) && event.keyCode == 3 {
                 DispatchQueue.main.async { [weak self] in
                     self?.closeTimelineView()
@@ -145,7 +145,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             return event
         }
         
-        NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { [weak self] (event) in
+        NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { [weak self] event in
             if self?.isTimelineOpen() ?? false {
                 if !event.modifierFlags.contains(.command) && event.scrollingDeltaX != 0 {
                     self?.timelineView?.viewModel.updateIndex(withDelta: event.scrollingDeltaX)
@@ -204,11 +204,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc func toggleTimeline() {
-        if self.isTimelineOpen() {
-            self.closeTimelineView()
+        if isTimelineOpen() {
+            closeTimelineView()
         } else {
             let frame = DatabaseManager.shared.getMaxFrame()
-            self.showTimelineView(with: frame)
+            showTimelineView(with: frame)
         }
     }
     
@@ -219,14 +219,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 contentRect: NSRect(x: 0, y: 0, width: 400, height: 300),
                 styleMask: [.titled, .closable],
                 backing: .buffered,
-                defer: false)
+                defer: false
+            )
             settingsViewWindow?.isReleasedWhenClosed = false
             settingsViewWindow?.center()
             settingsViewWindow?.contentView = NSHostingView(rootView: settingsView)
             settingsViewWindow?.makeKeyAndOrderFront(nil)
-        }  else if (!(settingsViewWindow?.isVisible ?? false)) {
+            DispatchQueue.main.async {
+                self.settingsViewWindow?.orderFrontRegardless() // Ensure it comes to the front
+            }
+        } else if !(settingsViewWindow?.isVisible ?? false) {
             settingsViewWindow?.makeKeyAndOrderFront(nil)
-            settingsViewWindow?.orderFrontRegardless() // Ensure it comes to the front
+            DispatchQueue.main.async {
+                self.settingsViewWindow?.orderFrontRegardless() // Ensure it comes to the front
+            }
         }
     }
     
@@ -242,17 +248,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         if response == .alertFirstButtonReturn {
             alert.window.close()
-            self.forgetEverything()
+            forgetEverything()
         } else {
             alert.window.close()
         }
     }
     
     private func handleGlobalScrollEvent(_ event: NSEvent) {
-        guard settingsManager.settings.enableCmdScrollShortcut else { return}
+        guard settingsManager.settings.enableCmdScrollShortcut else { return }
         guard event.modifierFlags.contains(.command) else { return }
         
-        if event.scrollingDeltaY < 0 && !self.isTimelineOpen() { // Check if scroll up
+        if event.scrollingDeltaY < 0 && !isTimelineOpen() { // Check if scroll up
             DispatchQueue.main.async { [weak self] in
                 self?.showTimelineView(with: DatabaseManager.shared.getMaxFrame())
             }
@@ -269,7 +275,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    func startScreenCapture() async {        
+    func startScreenCapture() async {
         do {
             let shareableContent = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: false)
 
@@ -299,6 +305,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             
             // Do we want to record the timeline being searched?
             guard let image = CGDisplayCreateImage(display.displayID, rect: display.frame) else { return }
+            
             let frameId = DatabaseManager.shared.insertFrame(activeApplicationName: activeApplicationName)
             
             if settingsManager.settings.onlyOCRFrontmostWindow {
@@ -388,7 +395,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 strongSelf.processChunk(tempBuffer)
             }
         }
-
     }
     
     private func processChunk(_ chunk: [Data]) {
@@ -497,7 +503,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         
-        self.timelineView?.viewModel.setIndexToLatest()
+        timelineView?.viewModel.setIndexToLatest()
         
         setupMenu()
     }
@@ -506,56 +512,47 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NSApplication.shared.terminate(self)
     }
 
-    
     private func performOCR(frameId: Int64, on image: CGImage) {
         ocrQueue.async {
             Task {
-                do {
-                    let configuration = ImageAnalyzer.Configuration([.text])
-                    let nsImage = NSImage(cgImage: image, size: NSZeroSize)
-                    let analysis = try await self.imageAnalyzer.analyze(nsImage, orientation: CGImagePropertyOrientation.up, configuration: configuration)
-                    let textToAssociate = analysis.transcript
-                    // self.logger.debug("Analysed text: \(textToAssociate)")
-                    var texts = [textToAssociate]
+                let request = VNRecognizeTextRequest { request, error in
+                    guard let observations = request.results as? [VNRecognizedTextObservation], error == nil else {
+                        print("OCR error: \(error?.localizedDescription ?? "Unknown error")")
+                        return
+                    }
+
+                    let topK = 1
+                    let recognizedStrings = observations.compactMap { observation in
+                        observation.topCandidates(topK).first?.string
+                        // observation.topCandidates(1).first?.boundingBox(for: str.startIndex..<str.endIndex)
+                    }.joined(separator: "\n")
+                    
+                    var texts = [recognizedStrings]
                     if self.settingsManager.settings.saveEverythingCopiedToClipboard {
                         let newClipboardText = ClipboardManager.shared.getClipboardIfChanged() ?? ""
                         texts.append(newClipboardText)
                     }
                     let cleanText = TextMerger.shared.mergeTexts(texts: texts)
                     DatabaseManager.shared.insertTextForFrame(frameId: frameId, text: cleanText)
-                    // print(textToAssociate)
+                }
+                
+                if self.settingsManager.settings.fastOCR {
+                    request.recognitionLevel = .fast
+                } else {
+                    request.recognitionLevel = .accurate
+                }
+
+                let requestHandler = VNImageRequestHandler(cgImage: image, options: [:])
+                do {
+                    try requestHandler.perform([request])
                 } catch {
-                    self.logger.error("OCR error: \(error.localizedDescription)")
+                    print("Failed to perform OCR: \(error.localizedDescription)")
                 }
             }
-            
-            
-            // Old method
-//            let request = VNRecognizeTextRequest { [weak self] request, error in
-//                guard let observations = request.results as? [VNRecognizedTextObservation], error == nil else {
-//                    print("OCR error: \(error?.localizedDescription ?? "Unknown error")")
-//                    return
-//                }
-//
-//                let topK = 1
-//                let recognizedStrings = observations.compactMap { observation in
-//                    observation.topCandidates(topK).first?.string
-//                }.joined(separator: "\n")
-//                
-//                DatabaseManager.shared.insertTextForFrame(frameId: frameId, text: recognizedStrings)
-//            }
-//            
-//            request.recognitionLevel = .accurate
-////            request.regionOfInterest = regionOfInterest
-//
-//            let requestHandler = VNImageRequestHandler(cgImage: image, options: [:])
-//            do {
-//                try requestHandler.perform([request])
-//            } catch {
-//                print("Failed to perform OCR: \(error.localizedDescription)")
-//            }
         }
     }
+    
+    private func analyzeImage(frameId: Int64, image: CGImage) {}
     
     private func processImageDataBuffer() {
         // Temporarily store the buffered data and clear the buffer
@@ -597,7 +594,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             DispatchQueue.main.async {
                 self.timelineViewWindow?.orderFrontRegardless() // Ensure it comes to the front
             }
-        } else if (!self.isTimelineOpen()) {
+        } else if !isTimelineOpen() {
             timelineView?.viewModel.updateIndex(withIndex: index)
             timelineView?.viewModel.setIsOpen(isOpen: true)
             timelineViewWindow?.makeKeyAndOrderFront(nil)
@@ -612,7 +609,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func openFullView(atIndex index: Int64) {
-        self.showTimelineView(with: index)
+        showTimelineView(with: index)
     }
     
     func closeSearchView() {
@@ -638,7 +635,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             searchViewWindow = MainWindow(
                 contentRect: screenRect,
                 styleMask: [.borderless, .fullSizeContentView],
-                backing: .buffered, defer: false)
+                backing: .buffered, defer: false
+            )
             searchViewWindow?.hasShadow = false
             searchViewWindow?.ignoresMouseEvents = false
             
@@ -649,7 +647,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             DispatchQueue.main.async {
                 self.searchViewWindow?.orderFrontRegardless() // Ensure it comes to the front
             }
-        } else if (!(searchViewWindow?.isVisible ?? false)) {
+        } else if !(searchViewWindow?.isVisible ?? false) {
             searchViewWindow?.makeKeyAndOrderFront(nil)
             DispatchQueue.main.async {
                 self.searchViewWindow?.orderFrontRegardless() // Ensure it comes to the front
