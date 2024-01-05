@@ -35,7 +35,7 @@ struct SearchBar: View {
     @State private var applicationFilterArray: [String] = []
     
     var body: some View {
-        HStack {
+        HStack(spacing: 16) {
             // Search TextField
             TextField("Search", text: $text, prompt: Text("Search for something..."))
                 .prefersDefaultFocus(in: nspace)
@@ -55,6 +55,10 @@ struct SearchBar: View {
                             .padding(.leading, 12)
                     }
                 )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color(white: 0.3), lineWidth: 1)
+                )
                 .onSubmit {
                     Task {
                         onSearch()
@@ -70,8 +74,7 @@ struct SearchBar: View {
                 .onAppear {
                     self.focused = true
                 }
-                .padding(.horizontal, 10)
-            
+
             FilterPicker(
                 applicationFilterArray: applicationFilterArray,
                 selectedFilterAppIndex: $selectedFilterAppIndex,
@@ -79,7 +82,7 @@ struct SearchBar: View {
                 debounceSearch: debounceSearch,
                 onSearch: onSearch
             )
-        }
+        }.padding(.horizontal, 16)
     }
 }
 
@@ -91,24 +94,26 @@ struct FilterPicker: View {
     var onSearch: () -> Void
     
     var body: some View {
-        Picker("Select App", selection: $selectedFilterAppIndex) {
-            ForEach(applicationFilterArray.indices, id: \.self) { index in
-                Text(applicationFilterArray[index])
-                    .tag(index)
+        VStack(alignment: .leading) {
+            Picker("Application", selection: $selectedFilterAppIndex) {
+                ForEach(applicationFilterArray.indices, id: \.self) { index in
+                    Text(applicationFilterArray[index])
+                        .tag(index)
+                }
             }
-        }
-        .onHover(perform: { hovering in
-            updateAppFilterData()
-        })
-        .pickerStyle(.menu)
-        .onChange(of: selectedFilterAppIndex) { newIndex in
-            guard newIndex >= 0 && newIndex < applicationFilterArray.count else {
-                return
+            .onHover(perform: { hovering in
+              updateAppFilterData()
+            })
+            .pickerStyle(.menu)
+            .onChange(of: selectedFilterAppIndex) { newIndex in
+                guard newIndex >= 0 && newIndex < applicationFilterArray.count else {
+                    return
+                }
+                selectedFilterApp = applicationFilterArray[selectedFilterAppIndex]
+                onSearch()
             }
-            selectedFilterApp = applicationFilterArray[selectedFilterAppIndex]
-            onSearch()
+            .frame(width: 200)
         }
-        .frame(width: 200)
     }
     private func updateAppFilterData() {
         var appFilters = ["All apps"]
