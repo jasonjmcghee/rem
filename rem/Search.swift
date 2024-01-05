@@ -29,11 +29,14 @@ struct SearchBar: View {
     var onSearch: () -> Void
     @Namespace var nspace
     @FocusState var focused: Bool?
-    
     var debounceSearch = Debouncer(delay: 0.3)
-
+    var applicationNameFilter: [String]
+    @Binding var selectedFilterAppIndex: Int
+    @Binding var selectedFilterApp: String
+    
     var body: some View {
         HStack {
+            // Search TextField
             TextField("Search", text: $text, prompt: Text("Search for something..."))
                 .prefersDefaultFocus(in: nspace)
                 .textFieldStyle(.plain)
@@ -56,21 +59,56 @@ struct SearchBar: View {
                     Task {
                         onSearch()
                     }
-                } // Trigger search when user submits
+                }
                 .onChange(of: text) { _ in
                     debounceSearch.debounce {
                         Task {
                             onSearch()
                         }
                     }
-                } // Trigger search when text changes
+                }
                 .onAppear {
                     self.focused = true
                 }
                 .padding(.horizontal, 10)
+            
+            FilterPicker(
+                applicationNameFilter: applicationNameFilter,
+                selectedFilterAppIndex: $selectedFilterAppIndex,
+                selectedFilterApp: $selectedFilterApp,
+                debounceSearch: debounceSearch,
+                onSearch: onSearch
+            )
         }
     }
 }
+
+struct FilterPicker: View {
+    var applicationNameFilter: [String]
+    @Binding var selectedFilterAppIndex: Int
+    @Binding var selectedFilterApp: String
+    var debounceSearch: Debouncer
+    var onSearch: () -> Void
+    
+    var body: some View {
+        Picker("Select App", selection: $selectedFilterAppIndex) {
+            ForEach(applicationNameFilter.indices, id: \.self) { index in
+                Text(applicationNameFilter[index])
+                    .tag(index)
+            }
+        }
+        .pickerStyle(.menu)
+        .onChange(of: selectedFilterAppIndex) { newIndex in
+            guard newIndex >= 0 && newIndex < applicationNameFilter.count else {
+                return
+            }
+            selectedFilterApp = applicationNameFilter[selectedFilterAppIndex]
+            onSearch()
+        }
+        .frame(width: 200)
+    }
+}
+
 
 struct VisualEffectView: NSViewRepresentable {
     var material: NSVisualEffectView.Material
@@ -136,6 +174,7 @@ class SearchResult: ObservableObject, Identifiable {
 //                    .replacingOccurrences(of: "\\s+", with: "\\s*", options: .regularExpression)
                 .replacingOccurrences(of: "(", with: "\\(")
                 .replacingOccurrences(of: ")", with: "\\)")
+                .replacingOccurrences(of: #"!([^ ]*) "#, with: "", options: .regularExpression)
             
             if let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive),
                let match = regex.firstMatch(in: text, options: [], range: NSRange(location: 0, length: text.utf16.count)) {
@@ -255,12 +294,20 @@ struct ResultsView: View {
     @State private var searchResults: [SearchResult] = []
     @State var limit: Int = 27
     @State var offset: Int = 0
-        
-    var onThumbnailClick: (Int64) -> Void  // Closure to handle thumbnail click
+    @State var selectedFilterApp: String = ""
+    @State var selectedFilterAppIndex: Int = 0
     
-    var body: some View {
-        VStack {
-            SearchBar(text: $searchText, onSearch: performSearch)
+    var onThumbnailClick: (Int64) -> Void
+
+        var body: some View {
+            VStack {
+                SearchBar(
+                    text: $searchText,
+                    onSearch: performSearch,
+                    applicationNameFilter: getAppFilterData(),
+                    selectedFilterAppIndex: $selectedFilterAppIndex,
+                    selectedFilterApp: $selectedFilterApp
+                )
             
             ScrollView {
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 20) {
@@ -301,13 +348,32 @@ struct ResultsView: View {
     }
     
     private func getSearchResults() -> [SearchResult] {
+        var results: [(frameId: Int64, fullText: String?, applicationName: String?, timestamp: Date, filePath: String, offsetIndex: Int64)] = []
+
         if searchText.isEmpty {
-            let recentResults = DatabaseManager.shared.getRecentResults(limit: limit, offset: offset)
-            return mapResultsToSearchResult(recentResults)
+            results = DatabaseManager.shared.getRecentResults(limit: limit, offset: offset)
         } else {
-            let results = DatabaseManager.shared.search(searchText: searchText, limit: limit, offset: offset)
-            return mapResultsToSearchResult(results)
+            results = DatabaseManager.shared.search(searchText: searchText, limit: limit, offset: offset)
         }
+        
+        if selectedFilterAppIndex == 0 {
+            return mapResultsToSearchResult(results)
+        } else {
+            let filteredResults = results.filter { result in
+                if let appName = result.applicationName {
+                    return appName.lowercased() == selectedFilterApp.lowercased()
+                }
+                return false
+            }
+            return mapResultsToSearchResult(filteredResults)
+        }
+    }
+    
+    private func getAppFilterData() -> [String] {
+        var appFilters = ["All apps"]
+        let allAppNames = DatabaseManager.shared.getAllApplicationNames()
+        appFilters.append(contentsOf: allAppNames)
+        return appFilters
     }
     
     private func mapResultsToSearchResult(_ data: [(frameId: Int64, fullText: String?, applicationName: String?, timestamp: Date, filePath: String, offsetIndex: Int64)]) -> [SearchResult] {

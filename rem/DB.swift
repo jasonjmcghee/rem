@@ -291,6 +291,24 @@ class DatabaseManager {
         return results
     }
     
+    func getAllApplicationNames() -> [String] {
+            var applicationNames: [String] = []
+            
+            do {
+                let distinctAppsQuery = frames.select(distinct: activeApplicationName)
+                for row in try db.prepare(distinctAppsQuery) {
+                    if let appName = row[activeApplicationName] {
+                        applicationNames.append(appName)
+                    }
+                }
+            } catch {
+                print("Error fetching application names: \(error)")
+            }
+            
+            return applicationNames
+        }
+        
+    
     func getImage(index: Int64, maxSize: CGSize? = nil) -> CGImage? {
         guard let frameData = DatabaseManager.shared.getFrame(forIndex: index) else { return nil }
         
