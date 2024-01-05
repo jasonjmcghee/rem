@@ -104,6 +104,9 @@ struct FilterPicker: View {
             .onHover(perform: { hovering in
               updateAppFilterData()
             })
+            .onAppear{
+                updateAppFilterData()
+            }
             .pickerStyle(.menu)
             .onChange(of: selectedFilterAppIndex) { newIndex in
                 guard newIndex >= 0 && newIndex < applicationFilterArray.count else {
