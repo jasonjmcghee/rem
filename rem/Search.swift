@@ -365,7 +365,7 @@ struct ResultsView: View {
             }
         } else {
             if searchText.isEmpty {
-                results = DatabaseManager.shared.search(appName: selectedFilterApp, searchText: "", limit: limit, offset: offset)
+                results = DatabaseManager.shared.getRecentResults(selectedFilterApp: selectedFilterApp, limit: limit, offset: offset)
             } else {
                 results = DatabaseManager.shared.search(appName: selectedFilterApp, searchText: searchText, limit: limit, offset: offset)
             }

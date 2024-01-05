@@ -317,12 +317,18 @@ class DatabaseManager {
         return results
     }
     
-    func getRecentResults(limit: Int = 9, offset: Int = 0) -> [(frameId: Int64, fullText: String?, applicationName: String?, timestamp: Date, filePath: String, offsetIndex: Int64)] {
-        let query = frames
+    func getRecentResults(selectedFilterApp: String = "", limit: Int = 9, offset: Int = 0) -> [(frameId: Int64, fullText: String?, applicationName: String?, timestamp: Date, filePath: String, offsetIndex: Int64)] {
+        var query = frames
             .join(videoChunks, on: frames[chunkId] == videoChunks[id])
             .select(frames[id], frames[activeApplicationName], frames[timestamp], videoChunks[filePath], frames[offsetIndex])
             .order(frames[timestamp].desc)
             .limit(limit, offset: offset)
+
+        if !selectedFilterApp.isEmpty {
+            query = query
+                .join(uniqueAppNames, on: uniqueAppNames[activeApplicationName] == frames[activeApplicationName])
+                .filter(uniqueAppNames[activeApplicationName].lowercaseString == selectedFilterApp.lowercased())
+        }
         
         var results: [(Int64, String?, String?, Date, String, Int64)] = []
         do {
