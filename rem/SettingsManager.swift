@@ -12,8 +12,8 @@ import SwiftUI
 struct AppSettings: Codable {
     var saveEverythingCopiedToClipboard: Bool
     var enableCmdScrollShortcut: Bool
-    var onlyOCRFrontmostWindow: Bool = false
-    var fastOCR: Bool = false
+    var onlyOCRFrontmostWindow: Bool = true
+    var fastOCR: Bool = true
 }
 
 // The settings manager handles saving and loading the settings
