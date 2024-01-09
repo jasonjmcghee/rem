@@ -412,6 +412,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 "-f", "image2pipe",
                 "-vcodec", "png",
                 "-i", "-",
+                "-power_efficient", "1",
                 "-color_trc", "iec61966_2_1", // Set transfer characteristics for sRGB (approximates 2.2 gamma)
                 "-c:v", "h264_videotoolbox",
                 "-q:v", "25",
