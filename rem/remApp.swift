@@ -88,6 +88,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var wasRecordingBeforeSleep: Bool = false
     private var wasRecordingBeforeTimelineView: Bool = false
     private var wasRecordingBeforeSearchView: Bool = false
+    
+    private var lastImageData: Data? = nil
+    private var lastActiveApplication: String? = nil
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let _ = DatabaseManager.shared
@@ -321,6 +324,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let text = TextMerger.shared.mergeTexts(texts: texts)
         ClipboardManager.shared.replaceClipboardContents(with: text)
     }
+    
+    private func displayImageChangedFromLast(imageData: Data) -> Bool {
+        if let prevImage = lastImageData {
+            return prevImage.withUnsafeBytes { ptr1 in
+                imageData.withUnsafeBytes { ptr2 in
+                    memcmp(ptr1.baseAddress, ptr2.baseAddress, imageData.count) != 0
+                }
+            }
+        }
+        return false
+    }
 
     private func scheduleScreenshot(shareableContent: SCShareableContent) {
         Task {
@@ -335,27 +349,38 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 // Do we want to record the timeline being searched?
                 guard let image = CGDisplayCreateImage(display.displayID, rect: display.frame) else { return }
                 
-                let frameId = DatabaseManager.shared.insertFrame(activeApplicationName: activeApplicationName)
+                let bitmapRep = NSBitmapImageRep(cgImage: image)
+                guard let imageData = bitmapRep.representation(using: .png, properties: [:]) else { return }
                 
-                if settingsManager.settings.onlyOCRFrontmostWindow {
-                    // User wants to perform OCR on only active window.
+                // Might as well only check if the applications are the same, otherwise obviously different
+                if activeApplicationName != lastActiveApplication || displayImageChangedFromLast(imageData: imageData) {
+                    lastImageData = imageData;
+                    lastActiveApplication = activeApplicationName;
                     
-                    // We need to determine the scale factor for cropping.  CGImage is
-                    // measured in pixels, display sizes are measured in points.
-                    let scale = max(CGFloat(image.width) / CGFloat(display.width), CGFloat(image.height) / CGFloat(display.height))
+                    let frameId = DatabaseManager.shared.insertFrame(activeApplicationName: activeApplicationName)
                     
-                    if
-                        let window = shareableContent.windows.first(where: { $0.isOnScreen && $0.owningApplication?.processID == NSWorkspace.shared.frontmostApplication?.processIdentifier }),
-                        let cropped = ImageHelper.cropImage(image: image, frame: window.frame, scale: scale)
-                    {
-                        self.performOCR(frameId: frameId, on: cropped)
+                    if settingsManager.settings.onlyOCRFrontmostWindow {
+                        // User wants to perform OCR on only active window.
+                        
+                        // We need to determine the scale factor for cropping.  CGImage is
+                        // measured in pixels, display sizes are measured in points.
+                        let scale = max(CGFloat(image.width) / CGFloat(display.width), CGFloat(image.height) / CGFloat(display.height))
+                        
+                        if
+                            let window = shareableContent.windows.first(where: { $0.isOnScreen && $0.owningApplication?.processID == NSWorkspace.shared.frontmostApplication?.processIdentifier }),
+                            let cropped = ImageHelper.cropImage(image: image, frame: window.frame, scale: scale)
+                        {
+                            self.performOCR(frameId: frameId, on: cropped)
+                        }
+                    } else {
+                        // default: User wants to perform OCR on full display.
+                        self.performOCR(frameId: frameId, on: image)
                     }
+                    
+                    await processScreenshot(frameId: frameId, imageData: imageData, frame: display.frame)
                 } else {
-                    // default: User wants to perform OCR on full display.
-                    self.performOCR(frameId: frameId, on: image)
+                    logger.info("Screen didn't change! Not processing frame.")
                 }
-                
-                await processScreenshot(frameId: frameId, image: image, frame: display.frame)
             } catch {
                 logger.error("Error taking screenshot: \(error)")
             }
@@ -406,14 +431,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 //        }
 //    }
     
-    private func processScreenshot(frameId: Int64, image: CGImage, frame: CGRect) async {
-        let bitmapRep = NSBitmapImageRep(cgImage: image)
-        guard let data = bitmapRep.representation(using: .png, properties: [:]) else { return }
-        
+    private func processScreenshot(frameId: Int64, imageData: Data, frame: CGRect) async {
         imageBufferQueue.async(flags: .barrier) { [weak self] in
             guard let strongSelf = self else { return }
             
-            strongSelf.imageDataBuffer.append(data)
+            strongSelf.imageDataBuffer.append(imageData)
 
             // Quickly move the images to a temporary buffer if the threshold is reached
             var tempBuffer: [Data] = []
