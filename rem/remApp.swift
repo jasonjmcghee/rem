@@ -84,6 +84,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     private var isCapturing: CaptureState = .stopped
     private let screenshotQueue = DispatchQueue(label: "today.jason.screenshotQueue")
+    
+    private var wasRecordingBeforeSleep: Bool = false
+    private var wasRecordingBeforeTimelineView: Bool = false
+    private var wasRecordingBeforeSearchView: Bool = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let _ = DatabaseManager.shared
@@ -162,6 +166,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         // Initialize the search view
         searchView = SearchView(onThumbnailClick: openFullView)
+        observeSystemNotifications()
     }
     
     func setupMenu() {
@@ -274,6 +279,29 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
     }
+    
+    private func observeSystemNotifications() {
+        let workspaceNotificationCenter = NSWorkspace.shared.notificationCenter
+        workspaceNotificationCenter.addObserver(self, selector: #selector(systemWillSleep), name: NSWorkspace.willSleepNotification, object: nil)
+        workspaceNotificationCenter.addObserver(self, selector: #selector(systemDidWake), name: NSWorkspace.didWakeNotification, object: nil)
+    }
+    
+    @objc private func systemWillSleep() {
+        logger.info("Detected sleep!")
+        // Logic to handle system going to sleep
+        wasRecordingBeforeSleep = (isCapturing == .recording)
+        if wasRecordingBeforeSleep {
+            pauseRecording()
+        }
+    }
+
+    @objc private func systemDidWake() {
+        logger.info("Detected wake!")
+        // Logic to handle system wake up
+        if wasRecordingBeforeSleep {
+            enableRecording()
+        }
+    }
 
     func startScreenCapture() async {
         do {
@@ -295,38 +323,42 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func scheduleScreenshot(shareableContent: SCShareableContent) {
-        guard isCapturing == .recording else { return }
-        
         Task {
-            guard let display = shareableContent.displays.first else { return }
-            let activeApplicationName = NSWorkspace.shared.frontmostApplication?.localizedName
-
-            logger.debug("Active Application: \(activeApplicationName ?? "<undefined>")")
-            
-            // Do we want to record the timeline being searched?
-            guard let image = CGDisplayCreateImage(display.displayID, rect: display.frame) else { return }
-            
-            let frameId = DatabaseManager.shared.insertFrame(activeApplicationName: activeApplicationName)
-            
-            if settingsManager.settings.onlyOCRFrontmostWindow {
-                // User wants to perform OCR on only active window.
-
-                // We need to determine the scale factor for cropping.  CGImage is
-                // measured in pixels, display sizes are measured in points.
-                let scale = max(CGFloat(image.width) / CGFloat(display.width), CGFloat(image.height) / CGFloat(display.height))
-
-                if
-                    let window = shareableContent.windows.first(where: { $0.isOnScreen && $0.owningApplication?.processID == NSWorkspace.shared.frontmostApplication?.processIdentifier }),
-                    let cropped = ImageHelper.cropImage(image: image, frame: window.frame, scale: scale)
-                {
-                    self.performOCR(frameId: frameId, on: cropped)
+            do {
+                guard isCapturing == .recording else { return }
+                
+                guard let display = shareableContent.displays.first else { return }
+                let activeApplicationName = NSWorkspace.shared.frontmostApplication?.localizedName
+                
+                logger.debug("Active Application: \(activeApplicationName ?? "<undefined>")")
+                
+                // Do we want to record the timeline being searched?
+                guard let image = CGDisplayCreateImage(display.displayID, rect: display.frame) else { return }
+                
+                let frameId = DatabaseManager.shared.insertFrame(activeApplicationName: activeApplicationName)
+                
+                if settingsManager.settings.onlyOCRFrontmostWindow {
+                    // User wants to perform OCR on only active window.
+                    
+                    // We need to determine the scale factor for cropping.  CGImage is
+                    // measured in pixels, display sizes are measured in points.
+                    let scale = max(CGFloat(image.width) / CGFloat(display.width), CGFloat(image.height) / CGFloat(display.height))
+                    
+                    if
+                        let window = shareableContent.windows.first(where: { $0.isOnScreen && $0.owningApplication?.processID == NSWorkspace.shared.frontmostApplication?.processIdentifier }),
+                        let cropped = ImageHelper.cropImage(image: image, frame: window.frame, scale: scale)
+                    {
+                        self.performOCR(frameId: frameId, on: cropped)
+                    }
+                } else {
+                    // default: User wants to perform OCR on full display.
+                    self.performOCR(frameId: frameId, on: image)
                 }
-            } else {
-                // default: User wants to perform OCR on full display.
-                self.performOCR(frameId: frameId, on: image)
+                
+                await processScreenshot(frameId: frameId, image: image, frame: display.frame)
+            } catch {
+                logger.error("Error taking screenshot: \(error)")
             }
-
-            await processScreenshot(frameId: frameId, image: image, frame: display.frame)
             
             screenshotQueue.asyncAfter(deadline: .now() + 2) { [weak self] in
                 self?.scheduleScreenshot(shareableContent: shareableContent)
@@ -475,20 +507,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     @objc func pauseRecording() {
-        disableRecording(justPause: true)
+        isCapturing = .paused
+        logger.info("Screen capture paused")
     }
     
-    @objc func disableRecording(justPause: Bool = false) {
+    @objc func disableRecording() {
         if isCapturing != .recording {
             return
         }
         
-        if justPause {
-            pauseScreenCapture()
-        } else {
-            // Stop screen capture
-            stopScreenCapture()
-        }
+        // Stop screen capture
+        stopScreenCapture()
         
         // Process any remaining frames in the buffer
         imageBufferQueue.sync { [weak self] in
@@ -567,7 +596,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     @objc func showTimelineView(with index: Int64) {
-        pauseRecording()
+        wasRecordingBeforeTimelineView = (isCapturing == .recording)
+        disableRecording()
         closeSearchView()
         if timelineViewWindow == nil {
             let screenRect = NSScreen.main?.frame ?? NSRect.zero
@@ -616,19 +646,23 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func closeSearchView() {
         searchViewWindow?.isReleasedWhenClosed = false
         searchViewWindow?.close()
+        if wasRecordingBeforeSearchView {
+            enableRecording()
+        }
     }
     
     func closeTimelineView() {
         timelineViewWindow?.isReleasedWhenClosed = false
         timelineViewWindow?.close()
         timelineView?.viewModel.setIsOpen(isOpen: false)
-        if isCapturing == .paused {
+        if wasRecordingBeforeTimelineView {
             enableRecording()
         }
     }
     
     @objc func showSearchView() {
-        pauseRecording()
+        wasRecordingBeforeSearchView = (isCapturing == .recording)
+        disableRecording()
         closeTimelineView()
         // Ensure that the search view window is created and shown
         if searchViewWindow == nil {
