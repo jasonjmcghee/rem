@@ -341,7 +341,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             do {
                 guard isCapturing == .recording else { return }
                 
-                guard let display = shareableContent.displays.first else { return }
+                var displayID: CGDirectDisplayID? = nil
+                if let screenID = NSScreen.main?.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber {
+                    displayID = CGDirectDisplayID(screenID.uint32Value)
+                }
+                guard displayID != nil else { return }
+                
+                guard let display = shareableContent.displays.first(where: { $0.displayID == displayID }) else { return }
                 let activeApplicationName = NSWorkspace.shared.frontmostApplication?.localizedName
                 
                 logger.debug("Active Application: \(activeApplicationName ?? "<undefined>")")
