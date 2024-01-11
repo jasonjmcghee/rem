@@ -168,7 +168,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
 func drawStatusBarIcon(rect: CGRect) -> Bool {
     // More robust dark mode detection
-    let isDarkMode = NSAppearance.current.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
+    let isDarkMode = self.statusBarItem.button?.effectiveAppearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
 
     let icon = self.isCapturing == .recording ? (
         isDarkMode ? self.recordingStatusImageDark : self.recordingStatusImage
@@ -183,11 +183,10 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
     
     func setupMenu() {
         DispatchQueue.main.async {
-            let statusBarIcon = NSImage(size: NSSize(width: 32, height: 32), flipped: false) { [weak self] rect in
-                return self?.drawStatusBarIcon(rect: rect) ?? false
-            }
             if let button = self.statusBarItem.button {
-                button.image = statusBarIcon
+                button.image = NSImage(size: NSSize(width: 16, height: 16), flipped: false) { [weak self] rect in
+                    return self?.drawStatusBarIcon(rect: rect) ?? false
+                }
                 button.action = #selector(self.togglePopover(_:))
             }
             let menu = NSMenu()
