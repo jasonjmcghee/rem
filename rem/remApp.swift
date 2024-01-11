@@ -73,8 +73,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     var ffmpegTimer: Timer?
     var screenshotTimer: Timer?
-    
-    var observer: NSKeyValueObservation?
         
     private let frameThreshold = 30 // Number of frames after which FFmpeg processing is triggered
     private var ffmpegProcess: Process?
@@ -106,10 +104,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Setup Menu
         setupMenu()
-        
-        observer = statusBarItem.button?.observe(\.effectiveAppearance) { _, _ in
-            self.setupMenu()
-        }
         
         // Monitor for scroll events
         NSEvent.addGlobalMonitorForEvents(matching: .scrollWheel) { [weak self] event in
@@ -171,17 +165,28 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         searchView = SearchView(onThumbnailClick: openFullView)
         observeSystemNotifications()
     }
+
+func drawStatusBarIcon(rect: CGRect) -> Bool {
+    // More robust dark mode detection
+    let isDarkMode = self.statusBarItem.button?.effectiveAppearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
+
+    let icon = self.isCapturing == .recording ? (
+        isDarkMode ? self.recordingStatusImageDark : self.recordingStatusImage
+    ) : (
+        isDarkMode ? self.idleStatusImageDark : self.idleStatusImage
+    )
+
+    icon?.draw(in: rect)
+
+    return true
+}
     
     func setupMenu() {
         DispatchQueue.main.async {
             if let button = self.statusBarItem.button {
-                let appearenceName = button.effectiveAppearance.name
-                let darkMode = appearenceName.rawValue.lowercased().contains("dark")
-                button.image = self.isCapturing == .recording ? (
-                    darkMode ? self.recordingStatusImageDark : self.recordingStatusImage
-                ) : (
-                    darkMode ? self.idleStatusImageDark : self.idleStatusImage
-                )
+                button.image = NSImage(size: NSSize(width: 16, height: 16), flipped: false) { [weak self] rect in
+                    return self?.drawStatusBarIcon(rect: rect) ?? false
+                }
                 button.action = #selector(self.togglePopover(_:))
             }
             let menu = NSMenu()
