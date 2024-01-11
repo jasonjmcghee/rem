@@ -79,7 +79,3 @@ struct AskBar: View {
         }
     }
 }
-
-#Preview {
-    AskView(onAsk: { _ in })
-}

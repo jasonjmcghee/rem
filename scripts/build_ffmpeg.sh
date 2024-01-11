@@ -1,11 +1,12 @@
 #!/bin/bash
 
-# Define the necessary flags for ARM64 architecture
-export SDKROOT=$(xcrun --sdk macosx --show-sdk-path)
-export MACOSX_DEPLOYMENT_TARGET=$(xcrun --sdk macosx --show-sdk-platform-version)
-export CFLAGS="-arch arm64 -isysroot $SDKROOT"
-export LDFLAGS="-arch arm64 -isysroot $SDKROOT"
-export CC="clang -arch arm64"
+# Define the necessary flags for architecture
+#export SDKROOT=$(xcrun --sdk macosx --show-sdk-path)
+#export MACOSX_DEPLOYMENT_TARGET=$(xcrun --sdk macosx --show-sdk-platform-version)
+arch="x86_64"
+#export CFLAGS="-arch $arch -isysroot $SDKROOT"
+#export LDFLAGS="-arch $arch -isysroot $SDKROOT"
+#export CC="clang -arch $arch"
 
 # Clone the FFmpeg repository
 git clone https://git.ffmpeg.org/ffmpeg.git ffmpeg
@@ -28,7 +29,7 @@ cd ffmpeg
 	--enable-filter=scale \
 	--enable-bsf=hevc_mp4toannexb \
 	--target-os=darwin \
-	--arch=arm64
+	--arch=$arch
 
 # Compile and install
 make clean
