@@ -64,14 +64,14 @@ Also, that means there is no tracking / analytics of any kind, which means I don
 ## Currently supports:
 - Going back in time (full-screen scrubber of everything you've viewed)
 - Copy text from back in time
-- Search everything you've viewed
+- Search everything you've viewed (with filter by application)
 - Easily grab recent context for use with LLMs
 
 ## Things I'd love to add:
 - [ ] Natural language search / agent interaction via updating local vector embedding
     - [I've also been exploring novel approaches to vector dbs](https://github.com/jasonjmcghee/portable-hnsw)
 - [ ] Novel search experiences like spatial / similar images
-- [ ] Search filters (by app, time, etc.)
+- [ ] More search filters (by time, etc.)
 - [ ] Fine-grained purging / trimming / selecting recording
 - [ ] Multi-monitor support
 
