@@ -11,7 +11,7 @@
 
 An open source approach to locally record everything you view on your Apple Silicon computer.
 
-_Note: Only tested on Apple Silicon, and the release is Apple Silicon._
+_Note: Only tested on Apple Silicon, but [there is now an intel build](https://github.com/jasonjmcghee/rem/releases/download/v0.1.11/rem-0.1.11-intel.dmg)_
 
 ---
 
