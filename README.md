@@ -9,7 +9,7 @@
   <img style="max-width:300px;" src="https://cdn.loom.com/sessions/thumbnails/091a48b318f04f22bdada62716298948-with-play.gif">
 </a>
 
-An open source approach to locally record everything you view on your Apple Silicon computer.
+An open source approach to locally record everything you view on your Mac (prefer other platforms? come help build [xrem](https://github.com/jasonjmcghee/xrem), cross-platform version of this project).
 
 _Note: Only tested on Apple Silicon, but [there is now an intel build](https://github.com/jasonjmcghee/rem/releases/download/v0.1.11/rem-0.1.11-intel.dmg)_
 
