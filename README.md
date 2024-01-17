@@ -15,7 +15,7 @@ _Note: Only tested on Apple Silicon, but [there is now an intel build](https://g
 
 ---
 
-### This is crazy alpha version (rem could use _your_ help!)
+### This is an early version (rem could use _your_ help!)
 
 Please log any bugs / issues you find!
 
@@ -33,6 +33,19 @@ leak private info.
 This is 100% local. Please, read the code yourself.
 
 Also, that means there is no tracking / analytics of any kind, which means I don't know you're running into bugs when you do. So please report any / all you find!
+
+## Features:
+- [x] Going back in time (full-screen scrubber of everything you've viewed)
+- [x] Copy text from back in time
+- [x] Search everything you've viewed (with filter by application)
+- [x] Easily grab recent context for use with LLMs
+- [x] [Intel build](https://github.com/jasonjmcghee/rem/releases/download/v0.1.11/rem-0.1.11-intel.dmg) (please help test!)
+- [ ] Natural language search / agent interaction via updating local vector embedding
+    - [I've also been exploring novel approaches to vector dbs](https://github.com/jasonjmcghee/portable-hnsw)
+- [ ] Novel search experiences like spatial / similar images
+- [ ] More search filters (by time, etc.)
+- [ ] Fine-grained purging / trimming / selecting recording
+- [ ] Multi-monitor support
 
 ## Getting Started
 
@@ -60,20 +73,6 @@ Also, that means there is no tracking / analytics of any kind, which means I don
 - Distribute App
 - Custom
 - Copy App
-
-## Currently supports:
-- Going back in time (full-screen scrubber of everything you've viewed)
-- Copy text from back in time
-- Search everything you've viewed (with filter by application)
-- Easily grab recent context for use with LLMs
-
-## Things I'd love to add:
-- [ ] Natural language search / agent interaction via updating local vector embedding
-    - [I've also been exploring novel approaches to vector dbs](https://github.com/jasonjmcghee/portable-hnsw)
-- [ ] Novel search experiences like spatial / similar images
-- [ ] More search filters (by time, etc.)
-- [ ] Fine-grained purging / trimming / selecting recording
-- [ ] Multi-monitor support
 
 ### FAQ
 - Where is my data?
