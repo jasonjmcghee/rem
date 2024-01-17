@@ -35,10 +35,10 @@ This is 100% local. Please, read the code yourself.
 Also, that means there is no tracking / analytics of any kind, which means I don't know you're running into bugs when you do. So please report any / all you find!
 
 ## Features:
-- [x] Automatically take a screenshot every 2 seconds, efficiently in terms of space and power
-- [x] Going back in time (full-screen scrubber of everything you've viewed)
+- [x] Automatically take a screenshot every 2 seconds, recognizing all text, using an efficient approach in terms of space and energy
+- [x] Go back in time (full-screen scrubber of everything you've viewed)
 - [x] Copy text from back in time
-- [x] Search everything you've viewed (with filter by application)
+- [x] Search everything you've viewed with keyword search (and filter by application)
 - [x] Easily grab recent context for use with LLMs
 - [x] First [Intel build](https://github.com/jasonjmcghee/rem/releases/download/v0.1.11/rem-0.1.11-intel.dmg) (please help test!)
 - [ ] Natural language search / agent interaction via updating local vector embedding
