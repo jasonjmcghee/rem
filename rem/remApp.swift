@@ -89,6 +89,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     private var lastImageData: Data? = nil
     private var lastActiveApplication: String? = nil
+    
+    private var imageResizer = ImageResizer(targetWidth: Int(NSScreen.main!.frame.width), targetHeight: Int(NSScreen.main!.frame.height))
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let _ = DatabaseManager.shared
@@ -349,6 +351,7 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
                 var displayID: CGDirectDisplayID? = nil
                 if let screenID = NSScreen.main?.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber {
                     displayID = CGDirectDisplayID(screenID.uint32Value)
+                    logger.debug("Display ID: \(displayID ?? 999)")
                 }
                 guard displayID != nil else { return }
                 
@@ -358,10 +361,20 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
                 logger.debug("Active Application: \(activeApplicationName ?? "<undefined>")")
                 
                 // Do we want to record the timeline being searched?
-                guard let image = CGDisplayCreateImage(display.displayID, rect: display.frame) else { return }
+                guard let image = CGDisplayCreateImage(display.displayID) else {
+                    logger.error("Failed to create a screenshot for the display!")
+                    return
+                }
+                guard let resizedImage = imageResizer.resizeAndPad(image: image) else {
+                    logger.error("Failed to resize the image!")
+                    return
+                }
                 
-                let bitmapRep = NSBitmapImageRep(cgImage: image)
-                guard let imageData = bitmapRep.representation(using: .png, properties: [:]) else { return }
+                let bitmapRep = NSBitmapImageRep(cgImage: resizedImage)
+                guard let imageData = bitmapRep.representation(using: .png, properties: [:]) else {
+                    logger.error("Failed to create a PNG from the screenshot!")
+                    return
+                }
                 
                 // Might as well only check if the applications are the same, otherwise obviously different
                 if activeApplicationName != lastActiveApplication || displayImageChangedFromLast(imageData: imageData) {
@@ -371,7 +384,7 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
                     let frameId = DatabaseManager.shared.insertFrame(activeApplicationName: activeApplicationName)
                     
                     if settingsManager.settings.onlyOCRFrontmostWindow {
-                        // User wants to perform OCR on only active window.
+                        // default: User wants to perform OCR on only active window.
                         
                         // We need to determine the scale factor for cropping.  CGImage is
                         // measured in pixels, display sizes are measured in points.
@@ -384,7 +397,7 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
                             self.performOCR(frameId: frameId, on: cropped)
                         }
                     } else {
-                        // default: User wants to perform OCR on full display.
+                        // User wants to perform OCR on full display.
                         self.performOCR(frameId: frameId, on: image)
                     }
                     

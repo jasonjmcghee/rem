@@ -118,7 +118,7 @@ class CustomHostingView: NSHostingView<AnyView> {
     private func configureImageView(with image: NSImage, in frame: NSRect) {
         imageView.image = image
 
-        imageView.imageScaling = .scaleAxesIndependently
+        imageView.imageScaling = .scaleProportionallyUpOrDown
 
         // Configuring frame to account for the offset and scaling
         imageView.frame = CGRect(x: 0, y: 0, width: frame.width, height: frame.height)
