@@ -9,13 +9,13 @@
   <img style="max-width:300px;" src="https://cdn.loom.com/sessions/thumbnails/091a48b318f04f22bdada62716298948-with-play.gif">
 </a>
 
-An open source approach to locally record everything you view on your Apple Silicon computer.
+An open source approach to locally record everything you view on your Mac (prefer other platforms? come help build [xrem](https://github.com/jasonjmcghee/xrem), cross-platform version of this project).
 
 _Note: Only tested on Apple Silicon, but [there is now an intel build](https://github.com/jasonjmcghee/rem/releases/download/v0.1.11/rem-0.1.11-intel.dmg)_
 
 ---
 
-### This is crazy alpha version (rem could use _your_ help!)
+### This is an early version (rem could use _your_ help!)
 
 Please log any bugs / issues you find!
 
@@ -33,6 +33,20 @@ leak private info.
 This is 100% local. Please, read the code yourself.
 
 Also, that means there is no tracking / analytics of any kind, which means I don't know you're running into bugs when you do. So please report any / all you find!
+
+## Features:
+- [x] Automatically take a screenshot every 2 seconds, recognizing all text, using an efficient approach in terms of space and energy
+- [x] Go back in time (full-screen scrubber of everything you've viewed)
+- [x] Copy text from back in time
+- [x] Search everything you've viewed with keyword search (and filter by application)
+- [x] Easily grab recent context for use with LLMs
+- [x] First [Intel build](https://github.com/jasonjmcghee/rem/releases/download/v0.1.11/rem-0.1.11-intel.dmg) (please help test!)
+- [ ] Natural language search / agent interaction via updating local vector embedding
+    - [I've also been exploring novel approaches to vector dbs](https://github.com/jasonjmcghee/portable-hnsw)
+- [ ] Novel search experiences like spatial / similar images
+- [ ] More search filters (by time, etc.)
+- [ ] Fine-grained purging / trimming / selecting recording
+- [ ] Multi-monitor support
 
 ## Getting Started
 
@@ -60,20 +74,6 @@ Also, that means there is no tracking / analytics of any kind, which means I don
 - Distribute App
 - Custom
 - Copy App
-
-## Currently supports:
-- Going back in time (full-screen scrubber of everything you've viewed)
-- Copy text from back in time
-- Search everything you've viewed (with filter by application)
-- Easily grab recent context for use with LLMs
-
-## Things I'd love to add:
-- [ ] Natural language search / agent interaction via updating local vector embedding
-    - [I've also been exploring novel approaches to vector dbs](https://github.com/jasonjmcghee/portable-hnsw)
-- [ ] Novel search experiences like spatial / similar images
-- [ ] More search filters (by time, etc.)
-- [ ] Fine-grained purging / trimming / selecting recording
-- [ ] Multi-monitor support
 
 ### FAQ
 - Where is my data?
