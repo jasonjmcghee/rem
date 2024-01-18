@@ -41,12 +41,13 @@ Also, that means there is no tracking / analytics of any kind, which means I don
 - [x] Search everything you've viewed with keyword search (and filter by application)
 - [x] Easily grab recent context for use with LLMs
 - [x] First [Intel build](https://github.com/jasonjmcghee/rem/releases/download/v0.1.11/rem-0.1.11-intel.dmg) (please help test!)
+- [x] It "works" with external / multiple monitors connected
 - [ ] Natural language search / agent interaction via updating local vector embedding
     - [I've also been exploring novel approaches to vector dbs](https://github.com/jasonjmcghee/portable-hnsw)
 - [ ] Novel search experiences like spatial / similar images
 - [ ] More search filters (by time, etc.)
 - [ ] Fine-grained purging / trimming / selecting recording
-- [ ] Multi-monitor support
+- [ ] Better / First-class multi-monitor support
 
 ## Getting Started
 
