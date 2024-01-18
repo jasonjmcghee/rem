@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		102CA4C82B3E240C00C3DA2E /* SQLite.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 96E66BC32B2F5745006E1E97 /* SQLite.framework */; };
+		960AC0242B58D0590050C62A /* ImageResizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 960AC0232B58D0590050C62A /* ImageResizer.swift */; };
 		961C95DA2B2E19B30093F228 /* remApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961C95D92B2E19B30093F228 /* remApp.swift */; };
 		961C95DC2B2E19B30093F228 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961C95DB2B2E19B30093F228 /* ContentView.swift */; };
 		961C95E12B2E19B40093F228 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 961C95E02B2E19B40093F228 /* Preview Assets.xcassets */; };
@@ -193,6 +194,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		960AC0232B58D0590050C62A /* ImageResizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageResizer.swift; sourceTree = "<group>"; };
 		961C95D62B2E19B30093F228 /* rem.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = rem.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		961C95D92B2E19B30093F228 /* remApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = remApp.swift; sourceTree = "<group>"; };
 		961C95DB2B2E19B30093F228 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -289,6 +291,7 @@
 				969F3F092B3B7F760085787B /* Info.plist */,
 				961C96122B2EB7DB0093F228 /* TimelineView.swift */,
 				BF5FEBFA2B44B26800744FC2 /* ImageHelper.swift */,
+				960AC0232B58D0590050C62A /* ImageResizer.swift */,
 				961C95D92B2E19B30093F228 /* remApp.swift */,
 				961C95DB2B2E19B30093F228 /* ContentView.swift */,
 				961C95DD2B2E19B40093F228 /* Assets.xcassets */,
@@ -656,6 +659,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				960AC0242B58D0590050C62A /* ImageResizer.swift in Sources */,
 				961C95DC2B2E19B30093F228 /* ContentView.swift in Sources */,
 				961C96152B2EBEE50093F228 /* DB.swift in Sources */,
 				96B0DA3A2B3A08280030E8AE /* TextMerger.swift in Sources */,
