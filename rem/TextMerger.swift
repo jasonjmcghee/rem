@@ -11,26 +11,17 @@ class TextMerger {
     static let shared = TextMerger()
 
     func mergeTexts(texts: [String]) -> String {
-        if texts.count == 1 {
-            return texts[0]
-        }
         var mergedText: String = ""
         var linesSeen = Set<String>()
         for text in texts {
             let cleanedText = cleanText(text)
-            if mergedText.isEmpty {
-                mergedText = cleanedText
-                continue
-            }
-            for line in self.segmentText(text) {
+            for line in self.segmentText(cleanedText) {
                 if !linesSeen.contains(line) {
                     mergedText += "\(line)\n"
                     linesSeen.insert(line)
                 }
             }
-            // mergedText = mergeTwoTexts(text1: mergedText, text2: cleanedText)
         }
-        // return compressDocument(mergedText)
         return mergedText
     }
 

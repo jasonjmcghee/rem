@@ -12,6 +12,9 @@ import LaunchAtLogin
 // The settings structure
 struct AppSettings: Codable {
     var saveEverythingCopiedToClipboard: Bool
+    var enableCmdScrollShortcut: Bool
+    var onlyOCRFrontmostWindow: Bool = true
+    var fastOCR: Bool = true
 }
 
 // The settings manager handles saving and loading the settings
@@ -27,7 +30,7 @@ class SettingsManager: ObservableObject {
             self.settings = decodedSettings
         } else {
             // Default settings
-            self.settings = AppSettings(saveEverythingCopiedToClipboard: false)
+            self.settings = AppSettings(saveEverythingCopiedToClipboard: false, enableCmdScrollShortcut: true)
         }
     }
 
@@ -48,7 +51,13 @@ struct SettingsView: View {
                 .padding(.bottom)
             Form {
                 Toggle("Remember everything copied to clipboard", isOn: $settingsManager.settings.saveEverythingCopiedToClipboard)
-                    .onChange(of: settingsManager.settings.saveEverythingCopiedToClipboard) { settingsManager.saveSettings() }
+                    .onChange(of: settingsManager.settings.saveEverythingCopiedToClipboard) { _ in settingsManager.saveSettings() }
+                Toggle("Allow opening / closing timeline with CMD + Scroll", isOn: $settingsManager.settings.enableCmdScrollShortcut)
+                    .onChange(of: settingsManager.settings.enableCmdScrollShortcut) { _ in settingsManager.saveSettings() }
+                Toggle("Only OCR region of active application window (more efficient)", isOn: $settingsManager.settings.onlyOCRFrontmostWindow)
+                    .onChange(of: settingsManager.settings.onlyOCRFrontmostWindow) { _ in settingsManager.saveSettings() }
+                Toggle("Use faster, but lower accuracy OCR (more efficient)", isOn: $settingsManager.settings.fastOCR)
+                    .onChange(of: settingsManager.settings.fastOCR) { _ in settingsManager.saveSettings() }
                 LaunchAtLogin.Toggle("Launch at login 🦄")
             }
         }

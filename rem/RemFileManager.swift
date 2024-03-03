@@ -6,8 +6,10 @@
 //
 
 import Foundation
+import os
 
 class RemFileManager {
+    private let logger = Logger()
     static let shared: RemFileManager = RemFileManager()
     
     func getSaveDir() -> URL? {
@@ -33,7 +35,7 @@ class RemFileManager {
                 try fileManager.createDirectory(at: subdirectory, withIntermediateDirectories: true, attributes: nil)
                 return subdirectory
             } catch {
-                print("Error creating subdirectory: \(error)")
+                logger.error("Error creating subdirectory: \(error)")
             }
         }
         

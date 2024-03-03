@@ -1,5 +1,6 @@
 import SwiftUI
 import Combine
+import os
 
 struct SearchView: View {
     var onThumbnailClick: (Int64) -> Void  // Closure to handle thumbnail click
@@ -27,11 +28,15 @@ struct SearchBar: View {
     @Binding var text: String
     var onSearch: () -> Void
     @Namespace var nspace
-    @State private var debounceTimer: Timer? = nil
     @FocusState var focused: Bool?
-
+    var debounceSearch = Debouncer(delay: 0.3)
+    @Binding var selectedFilterAppIndex: Int
+    @Binding var selectedFilterApp: String
+    @State private var applicationFilterArray: [String] = []
+    
     var body: some View {
-        HStack {
+        HStack(spacing: 16) {
+            // Search TextField
             TextField("Search", text: $text, prompt: Text("Search for something..."))
                 .prefersDefaultFocus(in: nspace)
                 .textFieldStyle(.plain)
@@ -50,20 +55,77 @@ struct SearchBar: View {
                             .padding(.leading, 12)
                     }
                 )
-                .onSubmit(onSearch) // Trigger search when user submits
-                .onChange(of: text) {
-                    debounceTimer?.invalidate()
-                    debounceTimer = Timer.scheduledTimer(withTimeInterval: 0.3, repeats: false) { _ in
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color(white: 0.3), lineWidth: 1)
+                )
+                .onSubmit {
+                    Task {
                         onSearch()
                     }
-                } // Trigger search when text changes
+                }
+                .onChange(of: text) { _ in
+                    debounceSearch.debounce {
+                        Task {
+                            onSearch()
+                        }
+                    }
+                }
                 .onAppear {
                     self.focused = true
                 }
-                .padding(.horizontal, 10)
-        }
+
+            FilterPicker(
+                applicationFilterArray: applicationFilterArray,
+                selectedFilterAppIndex: $selectedFilterAppIndex,
+                selectedFilterApp: $selectedFilterApp,
+                debounceSearch: debounceSearch,
+                onSearch: onSearch
+            )
+        }.padding(.horizontal, 16)
     }
 }
+
+struct FilterPicker: View {
+    @State var applicationFilterArray: [String]
+    @Binding var selectedFilterAppIndex: Int
+    @Binding var selectedFilterApp: String
+    var debounceSearch: Debouncer
+    var onSearch: () -> Void
+    
+    var body: some View {
+        VStack(alignment: .leading) {
+            Picker("Application", selection: $selectedFilterAppIndex) {
+                ForEach(applicationFilterArray.indices, id: \.self) { index in
+                    Text(applicationFilterArray[index])
+                        .tag(index)
+                }
+            }
+            .onHover(perform: { hovering in
+              updateAppFilterData()
+            })
+            .onAppear{
+                updateAppFilterData()
+            }
+            .pickerStyle(.menu)
+            .onChange(of: selectedFilterAppIndex) { newIndex in
+                guard newIndex >= 0 && newIndex < applicationFilterArray.count else {
+                    return
+                }
+                selectedFilterApp = applicationFilterArray[selectedFilterAppIndex]
+                onSearch()
+            }
+            .frame(width: 200)
+        }
+    }
+    private func updateAppFilterData() {
+        var appFilters = ["All apps"]
+        let allAppNames = DatabaseManager.shared.getAllApplicationNames()
+        appFilters.append(contentsOf: allAppNames)
+        applicationFilterArray = appFilters
+    }
+}
+
 
 struct VisualEffectView: NSViewRepresentable {
     var material: NSVisualEffectView.Material
@@ -103,8 +165,10 @@ struct ThumbnailView: View {
     }
 }
 
-struct SearchResult: Hashable {
-    var thumbnail: NSImage
+class SearchResult: ObservableObject, Identifiable {
+    let id = UUID()  // Unique identifier for each SearchResult
+
+    @Published var thumbnail: NSImage
     var frameId: Int64
     var applicationName: String?
     var fullText: String?
@@ -112,28 +176,35 @@ struct SearchResult: Hashable {
     var timestamp: Date
     var matchRange: Range<String.Index>?
     
-    init(thumbnail: NSImage, frameId: Int64, applicationName: String?, fullText: String?, searchText: String, timestamp: Date) {
-            self.thumbnail = thumbnail
-            self.frameId = frameId
-            self.applicationName = applicationName
-            self.fullText = fullText
-            self.searchText = searchText
-            self.timestamp = timestamp
+    init(frameId: Int64, applicationName: String?, fullText: String?, searchText: String, timestamp: Date) {
+        self.thumbnail = NSImage()
+        self.frameId = frameId
+        self.applicationName = applicationName
+        self.fullText = fullText
+        self.searchText = searchText
+        self.timestamp = timestamp
 
-            // Find range, ignoring case and whitespace
-            if let text = fullText {
-                let pattern = searchText
-                    .trimmingCharacters(in: .whitespacesAndNewlines)
+        // Find range, ignoring case and whitespace
+        if let text = fullText {
+            let pattern = searchText
+                .trimmingCharacters(in: .whitespacesAndNewlines)
 //                    .replacingOccurrences(of: "\\s+", with: "\\s*", options: .regularExpression)
-                    .replacingOccurrences(of: "(", with: "\\(")
-                    .replacingOccurrences(of: ")", with: "\\)")
-                
-                if let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive),
-                   let match = regex.firstMatch(in: text, options: [], range: NSRange(location: 0, length: text.utf16.count)) {
-                    self.matchRange = Range(match.range, in: text) ?? text.startIndex..<text.startIndex
-                } else {
-                    self.matchRange = text.startIndex..<text.startIndex
-                }
+                .replacingOccurrences(of: "(", with: "\\(")
+                .replacingOccurrences(of: ")", with: "\\)")
+            
+            if let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive),
+               let match = regex.firstMatch(in: text, options: [], range: NSRange(location: 0, length: text.utf16.count)) {
+                self.matchRange = Range(match.range, in: text) ?? text.startIndex..<text.startIndex
+            } else {
+                self.matchRange = text.startIndex..<text.startIndex
+            }
+        }
+    }
+    
+    // Method to update the thumbnail
+        func updateThumbnail(_ newImage: NSImage) {
+            DispatchQueue.main.async {
+                self.thumbnail = newImage
             }
         }
 }
@@ -191,7 +262,7 @@ struct HighlightedTextDisplayView: View {
 
 
 struct SearchResultView: View {
-    let result: SearchResult
+    @StateObject var result: SearchResult
     var onClick: (Int64) -> Void
 
     @State private var isHovered = false
@@ -205,7 +276,7 @@ struct SearchResultView: View {
                 .frame(width: frame.width / 4, height: frame.height / 4)
 
             VStack(alignment: .center, spacing: 24.0) {
-                Text(result.timestamp.formatted())
+                Text(result.timestamp.formatted(date: .abbreviated, time: .standard))
                 if let appName = result.applicationName {
                     Text(appName).font(.headline)
                 }
@@ -230,60 +301,177 @@ struct SearchResultView: View {
 
 
 struct ResultsView: View {
+    private let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier!,
+        category: String(describing: ResultsView.self)
+    )
+    @State private var isLoadingMore = false
     @State var searchText: String = ""
     @State private var searchResults: [SearchResult] = []
-    var onThumbnailClick: (Int64) -> Void  // Closure to handle thumbnail click
+    @State var limit: Int = 27
+    @State var offset: Int = 0
+    @State var selectedFilterApp: String = ""
+    @State var selectedFilterAppIndex: Int = 0
     
-    var body: some View {
-        VStack {
-            SearchBar(text: $searchText, onSearch: performSearch)
+    var onThumbnailClick: (Int64) -> Void
+
+        var body: some View {
+            VStack {
+                SearchBar(
+                    text: $searchText,
+                    onSearch: performSearch,
+                    selectedFilterAppIndex: $selectedFilterAppIndex,
+                    selectedFilterApp: $selectedFilterApp
+                )
             
             ScrollView {
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 20) {
-                    ForEach(searchResults, id: \.self) { result in
+                    ForEach(searchResults) { result in
                         SearchResultView(result: result, onClick: onThumbnailClick)
                     }
                 }
                 .padding()
+                .onScrollToBottom {
+                    Task {
+                        loadMoreResults()
+                    }
+                }
+                
+                if isLoadingMore {
+                    ProgressView()
+                }
+            }.onAppear {
+                Task {
+                    performSearch()
+                }
             }
         }
-        .onAppear(perform: loadRecentResults)
+    }
+    
+    // Function to load more results
+    private func loadMoreResults() {
+        guard !isLoadingMore else { return }
+        isLoadingMore = true
+        searchResults.append(contentsOf: getSearchResults())
+        offset += limit
+        isLoadingMore = false
     }
     
     private func performSearch() {
-        if searchText.isEmpty {
-            loadRecentResults()
-        } else {
-            let results = DatabaseManager.shared.search(searchText: searchText)
-            searchResults = mapResultsToSearchResult(results)
-        }
+        offset = 0
+        searchResults = getSearchResults()
     }
     
-    private func loadRecentResults() {
-        let recentResults = DatabaseManager.shared.getRecentResults(limit: 27)
-        searchResults = mapResultsToSearchResult(recentResults)
-    }
-    
-    private func mapResultsToSearchResult(_ data: [(frameId: Int64, fullText: String?, applicationName: String?, timestamp: Date)]) -> [SearchResult] {
-        data.map { item in
-            var nsImage: NSImage = NSImage(systemSymbolName: "questionmark.diamond", accessibilityDescription: "Missing thumbnail")!
-            if let cgImage = DatabaseManager.shared.getImage(index: item.frameId) {
-                let size = NSSize(width: cgImage.width, height: cgImage.height)
-                nsImage = NSImage(cgImage: cgImage, size: size)
+    private func getSearchResults() -> [SearchResult] {
+        var results: [(frameId: Int64, fullText: String?, applicationName: String?, timestamp: Date, filePath: String, offsetIndex: Int64)] = []
+
+        if selectedFilterAppIndex == 0 {
+            if searchText.isEmpty {
+                results = DatabaseManager.shared.getRecentResults(limit: limit, offset: offset)
+            } else {
+                results = DatabaseManager.shared.search(searchText: searchText, limit: limit, offset: offset)
             }
-            return SearchResult(
-                thumbnail: nsImage,
-                frameId: item.frameId,
-                applicationName: item.applicationName,
-                fullText: item.fullText?.split(separator: "\n").joined(separator: " "),
-                searchText: searchText,
-                timestamp: item.timestamp
-            )
+        } else {
+            if searchText.isEmpty {
+                results = DatabaseManager.shared.getRecentResults(selectedFilterApp: selectedFilterApp, limit: limit, offset: offset)
+            } else {
+                results = DatabaseManager.shared.search(appName: selectedFilterApp, searchText: searchText, limit: limit, offset: offset)
+            }
+        }
+        
+        return mapResultsToSearchResult(results)
+    }
+
+    
+    private func mapResultsToSearchResult(_ data: [(frameId: Int64, fullText: String?, applicationName: String?, timestamp: Date, filePath: String, offsetIndex: Int64)]) -> [SearchResult] {
+            let searchResults = data.map { item in
+                SearchResult(frameId: item.frameId, applicationName: item.applicationName, fullText: item.fullText?.split(separator: "\n").joined(separator: " "), searchText: searchText, timestamp: item.timestamp)
+            }
+
+            // Fetch all images in bulk
+            Task {
+                await fetchThumbnailsForResults(searchResults, data: data)
+            }
+
+            return searchResults
+        }
+
+    private func fetchThumbnailsForResults(_ results: [SearchResult], data: [(frameId: Int64, fullText: String?, applicationName: String?, timestamp: Date, filePath: String, offsetIndex: Int64)]) async {
+        var offsetsLookup: [String: [(Int64, Int64)]] = [:]
+        var frameIdIndexLookup: [Int64: Int] = [:]
+        
+        for (index, item) in data.enumerated() {
+            if !offsetsLookup.contains(where: { (key, value) in
+                key == item.filePath
+            }) {
+                offsetsLookup[item.filePath] = []
+            }
+            offsetsLookup[item.filePath]?.append((item.frameId, item.offsetIndex))
+            frameIdIndexLookup[item.frameId] = index
+        }
+        
+        for (key, value) in offsetsLookup {
+            let frameOffsets = value.map { $0.1 }
+            var offsetToId: [Int64: Int64] = [:]
+            value.forEach { v in
+                offsetToId[v.1] = v.0
+            }
+            let imageSequence = DatabaseManager.shared.getImages(filePath: key, frameOffsets: frameOffsets, maxSize: CGSize(width: 600, height: 600))
+            
+            let fps = Double(DatabaseManager.FPS)
+            var count = 0
+            for await imageResult in imageSequence {
+                switch imageResult {
+                case .success(let requestedTime, let image, _):
+                    if count < results.count {
+                        let offset = Int64(requestedTime.seconds * fps)
+                        if let id = offsetToId[offset] {
+                            if let dataIndex = frameIdIndexLookup[id] {
+                                results[dataIndex].updateThumbnail(NSImage(cgImage: image, size: NSZeroSize))
+                            }
+                        }
+                    }
+                    count += 1
+                case .failure(let requestedTime, let error):
+                    let offset = Int64(requestedTime.seconds * fps)
+                    logger.error("Failed to load image for time \(offset): \(error)")
+                }
+            }
         }
     }
 }
 
-#Preview("Hello", traits: .defaultLayout) {
-    SearchView(onThumbnailClick: { _ in })
+// Key definition for tracking ScrollView offset
+struct ViewOffsetKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
+    }
 }
 
+struct ScrollViewOffsetModifier: ViewModifier {
+    var onBottomReached: () -> Void
+    @State private var currentOffsetY: CGFloat = 0
+
+    func body(content: Content) -> some View {
+        content
+            .overlay(
+                GeometryReader { proxy in
+                    Color.clear
+                        .preference(key: ViewOffsetKey.self, value: proxy.frame(in: .global).minY)
+                }
+            )
+            .onPreferenceChange(ViewOffsetKey.self) { value in
+                if currentOffsetY > value && currentOffsetY - value > 100 { // Detect scroll upwards
+                    onBottomReached()
+                }
+                currentOffsetY = value
+            }
+    }
+}
+
+extension View {
+    func onScrollToBottom(perform action: @escaping () -> Void) -> some View {
+        self.modifier(ScrollViewOffsetModifier(onBottomReached: action))
+    }
+}

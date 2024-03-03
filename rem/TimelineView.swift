@@ -2,129 +2,93 @@
 import SwiftUI
 import AVFoundation
 import VisionKit
+import os
 
 struct TimelineView: View {
+    private let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier!,
+        category: String(describing: TimelineView.self)
+    )
     @ObservedObject var viewModel: TimelineViewModel
     @State private var imageAnalysis: ImageAnalysis?
-    @State private var frame: NSRect
-    @State private var lastAnalyzedIndex: Int64 = -1 // To track the last analyzed index
     @State var customHostingView: CustomHostingView?
-    @State private var debounceTimer: Timer? = nil
+    
+    private var ocrDebouncer = Debouncer(delay: 1.0)
 
     let overlayView = ImageAnalysisOverlayView()
     private let imageAnalyzer = ImageAnalyzer()
+    
+    var settingsManager: SettingsManager
+    var onClose: () -> Void  // Closure to handle thumbnail click
 
     private var fps: Int32 = 25
     
-    init(viewModel: TimelineViewModel) {
+    init(viewModel: TimelineViewModel, settingsManager: SettingsManager, onClose: @escaping () -> Void) {
         self.viewModel = viewModel
-        _frame = State(initialValue: NSScreen.main?.visibleFrame ?? NSRect.zero)
+        self.settingsManager = settingsManager
+        self.onClose = onClose
         _customHostingView = State(initialValue: nil)
     }
     
     var body: some View {
         ZStack {
-            let index = viewModel.currentFrameIndex
-            if let image = DatabaseManager.shared.getImage(index: index) {
-                let nsImage = NSImage(cgImage: image, size: NSSize(width: image.width, height: image.width))
-                CustomHostingControllerRepresentable(image: nsImage, analysis: $imageAnalysis, frame: frame)
-                    .frame(width: frame.width, height: frame.height)
-                    .ignoresSafeArea(.all)
-                    .onChange(of: viewModel.currentFrameIndex) { newIndex in
-                        debounceTimer?.invalidate()
-                        debounceTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: false) { _ in
-                            if let image = DatabaseManager.shared.getImage(index: newIndex) {
-                                analyzeImage(image)  // Assuming `image` is available here, modify as needed
-                            }
-                        }
-                    }
-                    .onAppear {
-                        debounceTimer?.invalidate()
-                        analyzeImage(image)
-                    }
-            } else {
-                Color.clear
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            let frame = NSScreen.main?.frame ?? NSRect.zero
+            let image = DatabaseManager.shared.getImage(index: viewModel.currentFrameIndex)
+            let nsImage = image.flatMap { NSImage(cgImage: $0, size: NSSize(width: $0.width, height: $0.height)) }
+            
+            CustomHostingControllerRepresentable(
+                settingsManager: settingsManager,
+                onClose: onClose,
+                image: nsImage,
+                analysis: imageAnalysis,
+                frame: frame,
+                timelineOpen: viewModel.timelineOpen
+            )
+                .frame(width: frame.width, height: frame.height)
+                .ignoresSafeArea(.all)
+                .onChange(of: viewModel.currentFrameIndex) { _ in
+                    analyzeCurrentImage()
+                }
+                .onAppear {
+                    analyzeCurrentImage()
+                }
+            
+            if image == nil {
+                VStack(alignment: .center) {
+                    Text("Nothing to remember, or missing frame (if missing, sorry, still alpha!)")
+                        .padding()
+                        .background(RoundedRectangle(cornerRadius: 10)
+                            .fill(Color.white.opacity(0.1)))
+                }
             }
+            
         }
         .ignoresSafeArea(.all)
     }
     
-    private func createCustomHostingView(with image: NSImage) -> CustomHostingView {
-        if let view = customHostingView {
-            view.updateImage(image)
-            return view
-        } else {
-            let view = CustomHostingView(image: image, frame: frame)
-            customHostingView = view
-            return view
+    private func analyzeCurrentImage() {
+        ocrDebouncer.debounce {
+            analyzeImage(index: viewModel.currentFrameIndex)
         }
     }
     
-    private func analyzeImage(_ image: CGImage) {
-        let configuration = ImageAnalyzer.Configuration([.text])
-        
+    private func analyzeImage(index: Int64) {
         Task {
-            do {
-                let nsImage = NSImage(cgImage: image, size: NSSize(width: image.width, height: image.height))
-                let analysis = try await imageAnalyzer.analyze(nsImage, orientation: CGImagePropertyOrientation.up, configuration: configuration)
-                DispatchQueue.main.async {
-                    self.imageAnalysis = analysis
-                    print("Analysis successful: \(analysis.transcript)")
+            if let image = DatabaseManager.shared.getImage(index: index) {
+                let configuration = ImageAnalyzer.Configuration([.text])
+                do {
+                    let analysis = try await imageAnalyzer.analyze(image, orientation: CGImagePropertyOrientation.up, configuration: configuration)
+                    DispatchQueue.main.async {
+                        self.imageAnalysis = analysis
+                        // print("Analysis successful: \(analysis.transcript)")
+                    }
+                } catch {
+                    logger.error("Error analyzing image: \(error)")
                 }
-            } catch {
-                print("Error analyzing image: \(error)")
             }
         }
     }
-        
-        var closeButton: some View {
-            Button("Exit Full Screen") {
-                if let window = NSApplication.shared.windows.first(where: { $0.contentView is NSHostingView<TimelineView> }) {
-                    window.toggleFullScreen(nil)
-                }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-        }
-        
-        
-//        struct Timeline_Previews: PreviewProvider {
-//            static var previews: some View {
-//                TimelineView(viewModel: TimelineViewModel())
-//            }
-//        }
-        
-        func pngData(from nsImage: NSImage) -> Data? {
-            guard let tiffRepresentation = nsImage.tiffRepresentation,
-                  let bitmapImage = NSBitmapImageRep(data: tiffRepresentation) else {
-                print("Failed to get TIFF representation of NSImage")
-                return nil
-            }
-            
-            guard let pngData = bitmapImage.representation(using: .png, properties: [:]) else {
-                print("Failed to convert NSImage to PNG")
-                return nil
-            }
-            
-            return pngData
-        }
-        
-        func saveNSImage(image: NSImage, path: String) {
-            let pngData = pngData(from: image)
-            do {
-                if let savedir = RemFileManager.shared.getSaveDir() {
-                    let outputPath = savedir.appendingPathComponent("\(path).png").path
-                    let fileURL = URL(fileURLWithPath: outputPath)
-                    try pngData?.write(to: fileURL)
-                    print("PNG file written successfully")
-                } else {
-                    print("Error writing PNG file")
-                }
-            } catch {
-                print("Error writing PNG file: \(error)")
-            }
-        }
-    }
+}
 
 class CustomHostingView: NSHostingView<AnyView> {
     var imageView: NSImageView!
@@ -153,11 +117,11 @@ class CustomHostingView: NSHostingView<AnyView> {
 
     private func configureImageView(with image: NSImage, in frame: NSRect) {
         imageView.image = image
-        imageView.imageScaling = .scaleAxesIndependently
+
+        imageView.imageScaling = .scaleProportionallyUpOrDown
 
         // Configuring frame to account for the offset and scaling
-        let adjustedFrame = CGRect(x: 0, y: -24, width: frame.width, height: frame.height + 24)
-        imageView.frame = adjustedFrame
+        imageView.frame = CGRect(x: 0, y: 0, width: frame.width, height: frame.height)
     }
 
     private func setupOverlayView() {
@@ -172,49 +136,64 @@ class CustomHostingView: NSHostingView<AnyView> {
     }
 
     func updateAnalysis(_ analysis: ImageAnalysis?) {
-        if analysis != nil {
-            self.exitFullScreenMode()
-        }
         overlayView.analysis = analysis
     }
 }
 
 struct CustomHostingControllerRepresentable: NSViewControllerRepresentable {
-    var image: NSImage
-    @Binding var analysis: ImageAnalysis?
+    var settingsManager: SettingsManager
+    var onClose: () -> Void
+    var image: NSImage?
+    var analysis: ImageAnalysis?
     var frame: NSRect
+    var timelineOpen: Bool
 
     func makeNSViewController(context: Context) -> CustomHostingViewController {
         let viewController = CustomHostingViewController()
-        viewController.updateImage(image, frame: frame)
+        viewController.onClose = onClose
+        viewController.settingsManager = settingsManager
+        viewController.updateContent(image: image, frame: frame, analysis: analysis)
         return viewController
     }
 
     func updateNSViewController(_ nsViewController: CustomHostingViewController, context: Context) {
-        nsViewController.updateImage(image, frame: frame)
-        nsViewController.updateAnalysis(analysis)
+        if timelineOpen {
+            nsViewController.updateContent(image: image, frame: frame, analysis: analysis)
+        }
+        nsViewController.onClose = onClose
+        nsViewController.settingsManager = settingsManager
     }
 }
 
 class CustomHostingViewController: NSViewController {
+    var settingsManager: SettingsManager?
+    var onClose: (() -> Void)?
     var customHostingView: CustomHostingView?
+    var interceptingView: CustomInterceptingView?
+    var hadImage: Bool = false
     
     override func viewWillAppear() {
-        view.enterFullScreenMode(NSScreen.main!)
+        DispatchQueue.main.async {
+            self.view.window?.makeKey()
+        }
     }
 
     override func loadView() {
-        let interceptingView = CustomInterceptingView()
-        self.view = interceptingView // Basic NSView as a container
+        let _interceptingView = CustomInterceptingView()
+        _interceptingView.onClose = onClose
+        _interceptingView.settingsManager = settingsManager
+        self.view = _interceptingView // Basic NSView as a container
         if customHostingView == nil {
             customHostingView = CustomHostingView(image: NSImage(), frame: self.view.bounds)
             customHostingView?.frame = CGRect(origin: .zero, size: self.view.bounds.size)
             view.addSubview(customHostingView!)
         }
-        interceptingView.customHostingView = customHostingView
+        _interceptingView.customHostingView = customHostingView
+        interceptingView = _interceptingView
     }
 
     func updateImage(_ image: NSImage, frame: NSRect) {
+        // Image available: update or create CustomHostingView with the image
         if customHostingView == nil {
             customHostingView = CustomHostingView(image: image, frame: frame)
             customHostingView?.frame = CGRect(origin: .zero, size: frame.size)
@@ -225,20 +204,51 @@ class CustomHostingViewController: NSViewController {
         customHostingView?.frame = CGRect(origin: .zero, size: frame.size)
     }
 
+    func updateContent(image: NSImage?, frame: NSRect, analysis: ImageAnalysis?) {
+        if let im = image {
+            if !view.isInFullScreenMode {
+                DispatchQueue.main.async {
+                    self.view.enterFullScreenMode(NSScreen.main!)
+                }
+            }
+            updateImage(im, frame: frame)
+            updateAnalysis(analysis)
+            hadImage = true
+        } else {
+            if view.isInFullScreenMode {
+                DispatchQueue.main.async {
+                    self.view.exitFullScreenMode()
+                }
+            }
+            displayVisualEffectView()
+            hadImage = false
+        }
+    }
+
+    private func displayVisualEffectView() {
+        interceptingView?.subviews.forEach { $0.removeFromSuperview() }
+
+        let visualEffectView = NSVisualEffectView()
+        visualEffectView.material = .hudWindow
+        visualEffectView.blendingMode = .behindWindow
+        visualEffectView.frame = interceptingView?.bounds ?? NSRect.zero
+
+        interceptingView?.addSubview(visualEffectView)
+    }
+
     func updateAnalysis(_ analysis: ImageAnalysis?) {
         customHostingView?.updateAnalysis(analysis)
     }
 }
 
 class CustomInterceptingView: NSView {
+    var settingsManager: SettingsManager?
+    var onClose: (() -> Void)?  // Closure to handle thumbnail click
     weak var customHostingView: CustomHostingView?
     
     private func exit() {
-        if (self.isInFullScreenMode) {
-            self.exitFullScreenMode()
-            self.window?.isReleasedWhenClosed = false
-            self.window?.close()
-        }
+        self.exitFullScreenMode()
+        self.onClose?()
     }
     
     override func hitTest(_ point: NSPoint) -> NSView? {
@@ -264,6 +274,7 @@ class CustomInterceptingView: NSView {
     }
     
     override func scrollWheel(with event: NSEvent) {
+        guard settingsManager?.settings.enableCmdScrollShortcut ?? false else { return }
         if event.modifierFlags.contains(.command) && event.scrollingDeltaY > 0 {
             self.exit()
         }
@@ -274,6 +285,8 @@ class TimelineViewModel: ObservableObject {
     private var speedFactor: Double = 0.05 // Adjust this factor based on UX requirements
     @Published var currentFrameContinuous: Double = 0.0
     @Published var currentFrameIndex: Int64 = 0
+    @Published var timelineOpen: Bool = false
+    private var indexUpdateThrottle = Throttler(delay: 0.05)
     
     init() {
         let maxFrame = DatabaseManager.shared.getMaxFrame()
@@ -284,26 +297,36 @@ class TimelineViewModel: ObservableObject {
     func updateIndex(withDelta delta: Double) {
         // Logic to update the index based on the delta
         // This method will be called from AppDelegate
-        var nextValue = currentFrameContinuous - delta * speedFactor
+        let nextValue = currentFrameContinuous - delta * speedFactor
         let maxValue = Double(DatabaseManager.shared.getMaxFrame())
         let clampedValue = min(max(1, nextValue), maxValue)
-        
-        
         self.currentFrameContinuous = clampedValue
-        self.currentFrameIndex = Int64(currentFrameContinuous)
+        self.updateIndexSafely()
     }
     
     func updateIndex(withIndex: Int64) {
         let maxValue = Double(DatabaseManager.shared.getMaxFrame())
         let clampedValue = min(max(1, Double(withIndex)), maxValue)
-        
-        
         self.currentFrameContinuous = clampedValue
-        self.currentFrameIndex = Int64(currentFrameContinuous)
+        self.updateIndexSafely()
     }
     
     func setIndexToLatest() {
-        self.currentFrameContinuous = Double(DatabaseManager.shared.getMaxFrame())
-        self.currentFrameIndex = Int64(currentFrameContinuous)
+        let maxFrame = DatabaseManager.shared.getMaxFrame()
+        DispatchQueue.main.async {
+            self.currentFrameContinuous = Double(maxFrame)
+            self.currentFrameIndex = maxFrame
+        }
+    }
+    
+    func updateIndexSafely() {
+        indexUpdateThrottle.throttle {
+            let rounded = Int64(self.currentFrameContinuous)
+            self.currentFrameIndex = rounded
+        }
+    }
+    
+    func setIsOpen(isOpen: Bool) {
+        timelineOpen = isOpen
     }
 }
