@@ -11,6 +11,9 @@ I would love to keep this project alive and growing, but can't do it alone.
 
 If you're at all interested in contributing, please feel free to reach out, start a discussion, open a PR, look at issues, look at roadmap below, etc.
 
+Something not working properly? There's no telemtry or tracking, so I won't know! Please log an issue or take a crack at fixing it yourself and
+submitting a PR! Have feature ideas? Log an issue!
+
 ---
 
 ### Original Demo
