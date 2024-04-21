@@ -4,6 +4,18 @@
 
 🧠 Remember everything. (very alpha - [download anyway](https://github.com/jasonjmcghee/rem/releases))
 
+---
+
+## 🚨 Looking for contributions / help! 🚨
+I would love to keep this project alive and growing, but can't do it alone.
+
+If you're at all interested in contributing, please feel free to reach out, start a discussion, open a PR, look at issues, look at roadmap below, etc.
+
+Something not working properly? There's no telemtry or tracking, so I won't know! Please log an issue or take a crack at fixing it yourself and
+submitting a PR! Have feature ideas? Log an issue!
+
+---
+
 ### Original Demo
 <a href="https://www.loom.com/share/091a48b318f04f22bdada62716298948">
   <img style="max-width:300px;" src="https://cdn.loom.com/sessions/thumbnails/091a48b318f04f22bdada62716298948-with-play.gif">

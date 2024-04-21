@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import LaunchAtLogin
 
 // The settings structure
 struct AppSettings: Codable {
@@ -14,6 +15,7 @@ struct AppSettings: Codable {
     var enableCmdScrollShortcut: Bool
     var onlyOCRFrontmostWindow: Bool = true
     var fastOCR: Bool = true
+    var startRememberingOnStartup: Bool = false
 }
 
 // The settings manager handles saving and loading the settings
@@ -49,6 +51,11 @@ struct SettingsView: View {
                 .font(.title)
                 .padding(.bottom)
             Form {
+                Toggle("Launch rem and start remembering on startup", isOn: $settingsManager.settings.startRememberingOnStartup)
+                    .onChange(of: settingsManager.settings.startRememberingOnStartup) { value in
+                        LaunchAtLogin.isEnabled = value
+                        settingsManager.saveSettings()
+                    }
                 Toggle("Remember everything copied to clipboard", isOn: $settingsManager.settings.saveEverythingCopiedToClipboard)
                     .onChange(of: settingsManager.settings.saveEverythingCopiedToClipboard) { _ in settingsManager.saveSettings() }
                 Toggle("Allow opening / closing timeline with CMD + Scroll", isOn: $settingsManager.settings.enableCmdScrollShortcut)
