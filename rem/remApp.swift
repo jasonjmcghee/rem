@@ -649,10 +649,11 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
             let screenRect = NSScreen.main?.frame ?? NSRect.zero
             timelineViewWindow = MainWindow(
                 contentRect: screenRect,
-                styleMask: [.borderless, .titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
+                styleMask: [.borderless, .fullSizeContentView],
                 backing: .buffered,
                 defer: false
             )
+            
             timelineViewWindow?.hasShadow = false
             timelineViewWindow?.level = .normal
 
@@ -664,6 +665,7 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
                 }
             })
             timelineView?.viewModel.updateIndex(withIndex: index)
+            timelineViewWindow?.toggleFullScreen(nil)
 
             timelineViewWindow?.contentView = NSHostingView(rootView: timelineView)
             timelineView?.viewModel.setIsOpen(isOpen: true)
@@ -672,6 +674,7 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
                 self.timelineViewWindow?.orderFrontRegardless() // Ensure it comes to the front
             }
         } else if !isTimelineOpen() {
+            timelineViewWindow?.toggleFullScreen(nil)
             timelineView?.viewModel.updateIndex(withIndex: index)
             timelineView?.viewModel.setIsOpen(isOpen: true)
             timelineViewWindow?.makeKeyAndOrderFront(nil)

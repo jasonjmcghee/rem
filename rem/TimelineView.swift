@@ -34,7 +34,7 @@ struct TimelineView: View {
     var body: some View {
         ZStack {
             let frame = NSScreen.main?.frame ?? NSRect.zero
-            let image = viewModel.getNextImage()
+            let image = DatabaseManager.shared.getImage(index: viewModel.currentFrameIndex)
             let nsImage = image.flatMap { NSImage(cgImage: $0, size: NSSize(width: $0.width, height: $0.height)) }
             
             CustomHostingControllerRepresentable(
@@ -55,13 +55,13 @@ struct TimelineView: View {
                 }
             
             if image == nil {
-                VStack(alignment: .center) {
-                    Text("Nothing to remember, or missing frame (if missing, sorry, still alpha!)")
-                        .padding()
-                        .background(RoundedRectangle(cornerRadius: 10)
-                            .fill(Color.white.opacity(0.1)))
+                    VStack(alignment: .center) {
+                        Text("Nothing to remember, or missing frame (if missing, sorry, still alpha!)")
+                            .padding()
+                            .background(RoundedRectangle(cornerRadius: 10)
+                                .fill(Color.white.opacity(0.1)))
+                    }
                 }
-            }
             
         }
         .ignoresSafeArea(.all)
@@ -176,15 +176,6 @@ class CustomHostingViewController: NSViewController {
     override func viewWillAppear() {
         DispatchQueue.main.async {
             self.view.window?.makeKey()
-        }
-    }
-    
-    override func viewDidAppear() {
-        super.viewDidAppear()
-        guard let window = view.window else { return }
-        
-        if !self.view.isInFullScreenMode{
-            window.toggleFullScreen(nil)
         }
     }
 
@@ -322,15 +313,6 @@ class TimelineViewModel: ObservableObject {
             self.currentFrameContinuous = Double(maxFrame)
             self.currentFrameIndex = maxFrame
         }
-    }
-    
-    func getNextImage() -> CGImage? {
-        var image = DatabaseManager.shared.getImage(index: self.currentFrameIndex)
-        while image == nil {
-            self.updateIndex(withDelta: 1)
-            image = DatabaseManager.shared.getImage(index: self.currentFrameIndex)
-        }
-        return image
     }
     
     func updateIndexSafely() {
