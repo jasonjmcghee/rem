@@ -30,10 +30,11 @@ struct TimelineView: View {
         _customHostingView = State(initialValue: nil)
     }
     
+    
     var body: some View {
         ZStack {
             let frame = NSScreen.main?.frame ?? NSRect.zero
-            let image = DatabaseManager.shared.getImage(index: viewModel.currentFrameIndex)
+            let image = viewModel.getNextImage()
             let nsImage = image.flatMap { NSImage(cgImage: $0, size: NSSize(width: $0.width, height: $0.height)) }
             
             CustomHostingControllerRepresentable(
@@ -321,6 +322,15 @@ class TimelineViewModel: ObservableObject {
             self.currentFrameContinuous = Double(maxFrame)
             self.currentFrameIndex = maxFrame
         }
+    }
+    
+    func getNextImage() -> CGImage? {
+        var image = DatabaseManager.shared.getImage(index: self.currentFrameIndex)
+        while image == nil {
+            self.updateIndex(withDelta: 1)
+            image = DatabaseManager.shared.getImage(index: self.currentFrameIndex)
+        }
+        return image
     }
     
     func updateIndexSafely() {
