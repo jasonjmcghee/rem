@@ -653,7 +653,6 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
                 backing: .buffered,
                 defer: false
             )
-            
             timelineViewWindow?.hasShadow = false
             timelineViewWindow?.level = .normal
 
