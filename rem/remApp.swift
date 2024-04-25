@@ -649,7 +649,7 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
             let screenRect = NSScreen.main?.frame ?? NSRect.zero
             timelineViewWindow = MainWindow(
                 contentRect: screenRect,
-                styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
+                styleMask: [.borderless, .titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
                 backing: .buffered,
                 defer: false
             )
