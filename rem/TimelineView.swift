@@ -177,6 +177,15 @@ class CustomHostingViewController: NSViewController {
             self.view.window?.makeKey()
         }
     }
+    
+    override func viewDidAppear() {
+        super.viewDidAppear()
+        guard let window = view.window else { return }
+        
+        if !self.view.isInFullScreenMode{
+            window.toggleFullScreen(nil)
+        }
+    }
 
     override func loadView() {
         let _interceptingView = CustomInterceptingView()
@@ -206,11 +215,6 @@ class CustomHostingViewController: NSViewController {
 
     func updateContent(image: NSImage?, frame: NSRect, analysis: ImageAnalysis?) {
         if let im = image {
-            if !view.isInFullScreenMode {
-                DispatchQueue.main.async {
-                    self.view.enterFullScreenMode(NSScreen.main!)
-                }
-            }
             updateImage(im, frame: frame)
             updateAnalysis(analysis)
             hadImage = true

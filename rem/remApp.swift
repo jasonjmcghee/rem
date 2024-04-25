@@ -649,14 +649,14 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
             let screenRect = NSScreen.main?.frame ?? NSRect.zero
             timelineViewWindow = MainWindow(
                 contentRect: screenRect,
-                styleMask: [.borderless, .fullSizeContentView],
+                styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
                 backing: .buffered,
                 defer: false
             )
             timelineViewWindow?.hasShadow = false
             timelineViewWindow?.level = .normal
 
-            timelineViewWindow?.collectionBehavior = [.fullScreenAuxiliary, .canJoinAllSpaces, .participatesInCycle]
+            timelineViewWindow?.collectionBehavior = [.fullScreenPrimary, .canJoinAllSpaces, .participatesInCycle]
             timelineViewWindow?.ignoresMouseEvents = false
             timelineView = TimelineView(viewModel: TimelineViewModel(), settingsManager: settingsManager, onClose: {
                 DispatchQueue.main.async { [weak self] in
