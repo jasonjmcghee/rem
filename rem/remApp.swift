@@ -673,8 +673,8 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
                 self.timelineViewWindow?.orderFrontRegardless() // Ensure it comes to the front
             }
         } else if !isTimelineOpen() {
-            timelineViewWindow?.toggleFullScreen(nil)
             timelineView?.viewModel.updateIndex(withIndex: index)
+            timelineViewWindow?.toggleFullScreen(nil)
             timelineView?.viewModel.setIsOpen(isOpen: true)
             timelineViewWindow?.makeKeyAndOrderFront(nil)
             DispatchQueue.main.async {
