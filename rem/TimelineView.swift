@@ -30,7 +30,6 @@ struct TimelineView: View {
         _customHostingView = State(initialValue: nil)
     }
     
-    
     var body: some View {
         ZStack {
             let frame = NSScreen.main?.frame ?? NSRect.zero
@@ -55,13 +54,13 @@ struct TimelineView: View {
                 }
             
             if image == nil {
-                    VStack(alignment: .center) {
-                        Text("Nothing to remember, or missing frame (if missing, sorry, still alpha!)")
-                            .padding()
-                            .background(RoundedRectangle(cornerRadius: 10)
-                                .fill(Color.white.opacity(0.1)))
-                    }
+                VStack(alignment: .center) {
+                    Text("Nothing to remember, or missing frame (if missing, sorry, still alpha!)")
+                        .padding()
+                        .background(RoundedRectangle(cornerRadius: 10)
+                            .fill(Color.white.opacity(0.1)))
                 }
+            }
             
         }
         .ignoresSafeArea(.all)
