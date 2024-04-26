@@ -664,18 +664,18 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
                 }
             })
             timelineView?.viewModel.updateIndex(withIndex: index)
-            timelineViewWindow?.toggleFullScreen(nil)
 
             timelineViewWindow?.contentView = NSHostingView(rootView: timelineView)
             timelineView?.viewModel.setIsOpen(isOpen: true)
+            self.timelineViewWindow?.toggleFullScreen(nil)
             timelineViewWindow?.makeKeyAndOrderFront(nil)
             DispatchQueue.main.async {
                 self.timelineViewWindow?.orderFrontRegardless() // Ensure it comes to the front
             }
         } else if !isTimelineOpen() {
             timelineView?.viewModel.updateIndex(withIndex: index)
-            timelineViewWindow?.toggleFullScreen(nil)
             timelineView?.viewModel.setIsOpen(isOpen: true)
+            self.timelineViewWindow?.toggleFullScreen(nil)
             timelineViewWindow?.makeKeyAndOrderFront(nil)
             DispatchQueue.main.async {
                 self.timelineViewWindow?.orderFrontRegardless() // Ensure it comes to the front
