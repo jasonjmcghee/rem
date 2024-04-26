@@ -664,7 +664,6 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
                 }
             })
             timelineView?.viewModel.updateIndex(withIndex: index)
-            
             timelineViewWindow?.contentView = NSHostingView(rootView: timelineView)
             timelineView?.viewModel.setIsOpen(isOpen: true)
             timelineViewWindow?.makeKeyAndOrderFront(nil)

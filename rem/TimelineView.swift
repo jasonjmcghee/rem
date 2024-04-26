@@ -190,13 +190,6 @@ class CustomHostingViewController: NSViewController {
         }
         _interceptingView.customHostingView = customHostingView
         interceptingView = _interceptingView
-        
-        NSAnimationContext.runAnimationGroup({ context in
-                    context.duration = 0.0 // Setting duration to zero effectively disables animations
-                    self.view.window?.toggleFullScreen(nil)
-                }, completionHandler: {
-                    // Any additional code after animation completes
-                })
     }
 
     func updateImage(_ image: NSImage, frame: NSRect) {
