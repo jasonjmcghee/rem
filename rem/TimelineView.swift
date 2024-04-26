@@ -206,9 +206,10 @@ class CustomHostingViewController: NSViewController {
 
     func updateContent(image: NSImage?, frame: NSRect, analysis: ImageAnalysis?) {
         if let im = image {
+            let fullScreenOptions = [NSView.FullScreenModeOptionKey.fullScreenModeAllScreens: NSNumber(value: false)]
             if !view.isInFullScreenMode {
                 DispatchQueue.main.async {
-                    self.view.enterFullScreenMode(NSScreen.main!)
+                    self.view.enterFullScreenMode(NSScreen.main!, withOptions: fullScreenOptions)
                 }
             }
             updateImage(im, frame: frame)
