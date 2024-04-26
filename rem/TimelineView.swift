@@ -177,7 +177,7 @@ class CustomHostingViewController: NSViewController {
             self.view.window?.makeKey()
         }
     }
-    
+
     override func loadView() {
         let _interceptingView = CustomInterceptingView()
         _interceptingView.onClose = onClose
