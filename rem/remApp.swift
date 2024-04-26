@@ -90,7 +90,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var lastImageData: Data? = nil
     private var lastActiveApplication: String? = nil
     
-    private var imageResizer = ImageResizer(targetWidth: Int(NSScreen.main!.frame.width), targetHeight: Int(NSScreen.main!.frame.height))
+    private var imageResizer = ImageResizer(
+        targetWidth: Int(NSScreen.main!.frame.width * NSScreen.main!.backingScaleFactor),
+        targetHeight: Int(NSScreen.main!.frame.height * NSScreen.main!.backingScaleFactor)
+    )
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let _ = DatabaseManager.shared
