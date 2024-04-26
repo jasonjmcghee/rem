@@ -132,8 +132,8 @@ class DatabaseManager {
     
     private func getCurrentChunkId() -> Int64 {
         do {
-            if let lastChunk = try db.pluck(videoChunks.order(id.desc)) {
-                return lastChunk[id] + 1
+            if let lastFrame = try db.pluck(frames.order(id.desc)) {
+                return lastFrame[chunkId] + 1
             }
         } catch {
             print("Error fetching last chunk ID: \(error)")

@@ -483,8 +483,6 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
         if let savedir = RemFileManager.shared.getSaveDir() {
             let outputPath = savedir.appendingPathComponent("output-\(Date().timeIntervalSince1970).mp4").path
             
-            let _ = DatabaseManager.shared.startNewVideoChunk(filePath: outputPath)
-            
             // Setup the FFmpeg process for the chunk
             let ffmpegProcess = Process()
             let bundleURL = Bundle.main.bundleURL
@@ -531,6 +529,17 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
 
             // Close the pipe and handle the process completion
             ffmpegInputPipe.fileHandleForWriting.closeFile()
+            ffmpegProcess.waitUntilExit()
+            
+            // Check if FFmpeg process completed successfully
+            if ffmpegProcess.terminationStatus == 0 {
+                // Start new video chunk in database only if FFmpeg succeeds
+                let _ = DatabaseManager.shared.startNewVideoChunk(filePath: outputPath)
+                logger.info("Video successfully saved and registered.")
+            } else {
+                logger.error("FFmpeg failed to process video chunk.")
+            }
+
             
             // Read FFmpeg's output and error
             let outputData = ffmpegOutputPipe.fileHandleForReading.readDataToEndOfFile()
