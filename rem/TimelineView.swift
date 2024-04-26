@@ -177,7 +177,7 @@ class CustomHostingViewController: NSViewController {
             self.view.window?.makeKey()
         }
     }
-
+    
     override func loadView() {
         let _interceptingView = CustomInterceptingView()
         _interceptingView.onClose = onClose
@@ -190,6 +190,13 @@ class CustomHostingViewController: NSViewController {
         }
         _interceptingView.customHostingView = customHostingView
         interceptingView = _interceptingView
+        
+        NSAnimationContext.runAnimationGroup({ context in
+                    context.duration = 0.0 // Setting duration to zero effectively disables animations
+                    self.view.window?.toggleFullScreen(nil)
+                }, completionHandler: {
+                    // Any additional code after animation completes
+                })
     }
 
     func updateImage(_ image: NSImage, frame: NSRect) {
@@ -206,6 +213,12 @@ class CustomHostingViewController: NSViewController {
 
     func updateContent(image: NSImage?, frame: NSRect, analysis: ImageAnalysis?) {
         if let im = image {
+            let fullScreenOptions = [NSView.FullScreenModeOptionKey.fullScreenModeAllScreens: NSNumber(value: false)]
+            if !view.isInFullScreenMode {
+                DispatchQueue.main.async {
+                    self.view.enterFullScreenMode(NSScreen.main!, withOptions: fullScreenOptions)
+                }
+            }
             updateImage(im, frame: frame)
             updateAnalysis(analysis)
             hadImage = true

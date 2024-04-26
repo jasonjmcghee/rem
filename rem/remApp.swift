@@ -656,7 +656,7 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
             timelineViewWindow?.hasShadow = false
             timelineViewWindow?.level = .normal
 
-            timelineViewWindow?.collectionBehavior = [.fullScreenPrimary, .canJoinAllSpaces, .participatesInCycle]
+            timelineViewWindow?.collectionBehavior = [.fullScreenAuxiliary, .canJoinAllSpaces, .participatesInCycle]
             timelineViewWindow?.ignoresMouseEvents = false
             timelineView = TimelineView(viewModel: TimelineViewModel(), settingsManager: settingsManager, onClose: {
                 DispatchQueue.main.async { [weak self] in
@@ -664,10 +664,9 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
                 }
             })
             timelineView?.viewModel.updateIndex(withIndex: index)
-
+            
             timelineViewWindow?.contentView = NSHostingView(rootView: timelineView)
             timelineView?.viewModel.setIsOpen(isOpen: true)
-            self.timelineViewWindow?.toggleFullScreen(nil)
             timelineViewWindow?.makeKeyAndOrderFront(nil)
             DispatchQueue.main.async {
                 self.timelineViewWindow?.orderFrontRegardless() // Ensure it comes to the front
@@ -675,7 +674,6 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
         } else if !isTimelineOpen() {
             timelineView?.viewModel.updateIndex(withIndex: index)
             timelineView?.viewModel.setIsOpen(isOpen: true)
-            self.timelineViewWindow?.toggleFullScreen(nil)
             timelineViewWindow?.makeKeyAndOrderFront(nil)
             DispatchQueue.main.async {
                 self.timelineViewWindow?.orderFrontRegardless() // Ensure it comes to the front
