@@ -324,7 +324,6 @@ class TimelineViewModel: ObservableObject {
         indexUpdateThrottle.throttle {
             let rounded = Int64(self.currentFrameContinuous)
             self.currentFrameIndex = rounded
-            print(self.currentFrameIndex)
         }
     }
     

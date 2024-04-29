@@ -446,7 +446,6 @@ class DatabaseManager {
         guard let frameData = DatabaseManager.shared.getFrameByChunksFramesIndex(forIndex: index) else { return nil }
         
         let videoURL = URL(fileURLWithPath: frameData.filePath)
-        print(frameData.filePath, frameData.offsetIndex)
         return extractFrame(from: videoURL, frameOffset: frameData.offsetIndex, maxSize: maxSize)
     }
     
