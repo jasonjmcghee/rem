@@ -33,7 +33,7 @@ struct TimelineView: View {
     var body: some View {
         ZStack {
             let frame = NSScreen.main?.frame ?? NSRect.zero
-            let image = DatabaseManager.shared.getImage(index: viewModel.currentFrameIndex)
+            let image = DatabaseManager.shared.getImageByChunksFramesIndex(index: viewModel.currentFrameIndex)
             let nsImage = image.flatMap { NSImage(cgImage: $0, size: NSSize(width: $0.width, height: $0.height)) }
             
             CustomHostingControllerRepresentable(
@@ -74,7 +74,7 @@ struct TimelineView: View {
     
     private func analyzeImage(index: Int64) {
         Task {
-            if let image = DatabaseManager.shared.getImage(index: index) {
+            if let image = DatabaseManager.shared.getImageByChunksFramesIndex(index: index) {
                 let configuration = ImageAnalyzer.Configuration([.text])
                 do {
                     let analysis = try await imageAnalyzer.analyze(image, orientation: CGImagePropertyOrientation.up, configuration: configuration)
@@ -290,7 +290,7 @@ class TimelineViewModel: ObservableObject {
     private var indexUpdateThrottle = Throttler(delay: 0.05)
     
     init() {
-        let maxFrame = DatabaseManager.shared.getMaxFrame()
+        let maxFrame = DatabaseManager.shared.getMaxChunksFramesIndex()
         currentFrameIndex = maxFrame
         currentFrameContinuous = Double(maxFrame)
     }
@@ -299,21 +299,21 @@ class TimelineViewModel: ObservableObject {
         // Logic to update the index based on the delta
         // This method will be called from AppDelegate
         let nextValue = currentFrameContinuous - delta * speedFactor
-        let maxValue = Double(DatabaseManager.shared.getMaxFrame())
+        let maxValue = Double(DatabaseManager.shared.getMaxChunksFramesIndex())
         let clampedValue = min(max(1, nextValue), maxValue)
         self.currentFrameContinuous = clampedValue
         self.updateIndexSafely()
     }
     
     func updateIndex(withIndex: Int64) {
-        let maxValue = Double(DatabaseManager.shared.getMaxFrame())
+        let maxValue = Double(DatabaseManager.shared.getMaxChunksFramesIndex())
         let clampedValue = min(max(1, Double(withIndex)), maxValue)
         self.currentFrameContinuous = clampedValue
         self.updateIndexSafely()
     }
     
     func setIndexToLatest() {
-        let maxFrame = DatabaseManager.shared.getMaxFrame()
+        let maxFrame = DatabaseManager.shared.getMaxChunksFramesIndex()
         DispatchQueue.main.async {
             self.currentFrameContinuous = Double(maxFrame)
             self.currentFrameIndex = maxFrame
