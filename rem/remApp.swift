@@ -196,7 +196,7 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
             }
             let menu = NSMenu()
             let recordingTitle = self.isCapturing == .recording ? "Stop Remembering" : "Start Remembering"
-            let recordingSelector = self.isCapturing == .recording ? #selector(self.disableRecording) : #selector(self.enableRecording)
+            let recordingSelector = self.isCapturing == .recording ? #selector(self.userDisableRecording) : #selector(self.enableRecording)
             menu.addItem(NSMenuItem(title: recordingTitle, action: recordingSelector, keyEquivalent: ""))
             menu.addItem(NSMenuItem(title: "Toggle Timeline", action: #selector(self.toggleTimeline), keyEquivalent: ""))
             menu.addItem(NSMenuItem(title: "Search", action: #selector(self.showSearchView), keyEquivalent: ""))
@@ -572,6 +572,12 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
         logger.info("Screen capture paused")
     }
     
+    @objc func userDisableRecording() {
+        wasRecordingBeforeSearchView = false
+        wasRecordingBeforeTimelineView = false
+        disableRecording()
+    }
+    
     @objc func disableRecording() {
         if isCapturing != .recording {
             return
@@ -657,7 +663,7 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
     }
     
     @objc func showTimelineView(with index: Int64) {
-        wasRecordingBeforeTimelineView = (isCapturing == .recording) || wasRecordingBeforeSearchView
+        wasRecordingBeforeTimelineView = (isCapturing == .recording) || wasRecordingBeforeSearchView // handle going from search to TL
         disableRecording()
         wasRecordingBeforeSearchView = false
         closeSearchView()
@@ -723,8 +729,9 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
     }
     
     @objc func showSearchView() {
-        wasRecordingBeforeSearchView = (isCapturing == .recording)
+        wasRecordingBeforeSearchView = (isCapturing == .recording) || wasRecordingBeforeTimelineView
         disableRecording()
+        wasRecordingBeforeTimelineView = false
         closeTimelineView()
         // Ensure that the search view window is created and shown
         if searchViewWindow == nil {
