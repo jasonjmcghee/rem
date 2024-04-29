@@ -23,7 +23,7 @@ submitting a PR! Have feature ideas? Log an issue!
 
 An open source approach to locally record everything you view on your Mac (prefer other platforms? come help build [xrem](https://github.com/jasonjmcghee/xrem), cross-platform version of this project).
 
-_Note: Only tested on Apple Silicon, but [there is now an intel build](https://github.com/jasonjmcghee/rem/releases/download/v0.1.11/rem-0.1.11-intel.dmg)_
+_Note: Only tested on Apple Silicon, but [there is now an intel build](https://github.com/jasonjmcghee/rem/releases)
 
 ---
 
@@ -52,7 +52,7 @@ Also, that means there is no tracking / analytics of any kind, which means I don
 - [x] Copy text from back in time
 - [x] Search everything you've viewed with keyword search (and filter by application)
 - [x] Easily grab recent context for use with LLMs
-- [x] First [Intel build](https://github.com/jasonjmcghee/rem/releases/download/v0.1.11/rem-0.1.11-intel.dmg) (please help test!)
+- [x] [Intel build](https://github.com/jasonjmcghee/rem/releases) (please help test!)
 - [x] It "works" with external / multiple monitors connected
 - [ ] Natural language search / agent interaction via updating local vector embedding
     - [I've also been exploring novel approaches to vector dbs](https://github.com/jasonjmcghee/portable-hnsw)
