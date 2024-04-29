@@ -557,6 +557,9 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
     }
 
     @objc func enableRecording() {
+        if isCapturing == .recording {
+            return
+        }
         isCapturing = .recording
 
         Task {
@@ -654,8 +657,9 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
     }
     
     @objc func showTimelineView(with index: Int64) {
-        wasRecordingBeforeTimelineView = (isCapturing == .recording)
+        wasRecordingBeforeTimelineView = (isCapturing == .recording) || wasRecordingBeforeSearchView
         disableRecording()
+        wasRecordingBeforeSearchView = false
         closeSearchView()
         if timelineViewWindow == nil {
             let screenRect = NSScreen.main?.frame ?? NSRect.zero
