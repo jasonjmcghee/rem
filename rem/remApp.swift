@@ -278,7 +278,7 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
         
         if event.scrollingDeltaY < 0 && !isTimelineOpen() { // Check if scroll up
             DispatchQueue.main.async { [weak self] in
-                self?.showTimelineView(with: DatabaseManager.shared.getMaxFrame())
+                self?.showTimelineView(with: DatabaseManager.shared.getMaxChunksFramesIndex())
             }
         }
     }

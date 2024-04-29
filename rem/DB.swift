@@ -191,7 +191,7 @@ class DatabaseManager {
     
     // Insert a new video chunk and return its ID
     func startNewVideoChunk(filePath: String) -> Int64 {
-        let insert = videoChunks.insert(self.filePath <- filePath)
+        let insert = videoChunks.insert(self.id <- currentChunkId, self.filePath <- filePath)
         let id = try! db.run(insert)
         currentChunkId = id + 1
         currentFrameOffset = 0
@@ -446,6 +446,7 @@ class DatabaseManager {
         guard let frameData = DatabaseManager.shared.getFrameByChunksFramesIndex(forIndex: index) else { return nil }
         
         let videoURL = URL(fileURLWithPath: frameData.filePath)
+        print(frameData.filePath, frameData.offsetIndex)
         return extractFrame(from: videoURL, frameOffset: frameData.offsetIndex, maxSize: maxSize)
     }
     
