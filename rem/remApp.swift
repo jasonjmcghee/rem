@@ -708,7 +708,12 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
     }
     
     func openFullView(atIndex index: Int64) {
-        showTimelineView(with: index)
+        // Needed since Search returns a frameId but Timeline runs on chunksFramesIndexs
+        if let chunksFramesIndex = DatabaseManager.shared.getChunksFramesIndex(frameId: index) {
+            showTimelineView(with: chunksFramesIndex)
+        } else {
+            print("No chunksFramesIndex found for frameId \(index)")
+        }
     }
     
     func closeSearchView() {
