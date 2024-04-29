@@ -15,6 +15,7 @@ Something not working properly? There's no telemtry or tracking, so I won't know
 submitting a PR! Have feature ideas? Log an issue!
 
 Want to learn more about the code?
+
 Here's the [Generated Wiki](https://wiki.mutable.ai/jasonjmcghee/rem)
 
 ---
