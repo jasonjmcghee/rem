@@ -225,7 +225,7 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
         if isTimelineOpen() {
             closeTimelineView()
         } else {
-            let frame = DatabaseManager.shared.getMaxFrame()
+            let frame = DatabaseManager.shared.getMaxChunksFramesIndex()
             showTimelineView(with: frame)
         }
     }
