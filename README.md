@@ -14,6 +14,9 @@ If you're at all interested in contributing, please feel free to reach out, star
 Something not working properly? There's no telemtry or tracking, so I won't know! Please log an issue or take a crack at fixing it yourself and
 submitting a PR! Have feature ideas? Log an issue!
 
+Want to learn more about the code?
+Here's the [Generated Wiki](https://wiki.mutable.ai/jasonjmcghee/rem)
+
 ---
 
 ### Original Demo
