@@ -29,10 +29,12 @@ class DatabaseManager {
     private let uniqueAppNames = Table("unique_application_names")
 
     let allText = VirtualTable("allText")
+    let chunksFramesView = View("chunks_frames_view")
     
     private let id = Expression<Int64>("id")
     private let offsetIndex = Expression<Int64>("offsetIndex")
     private let chunkId = Expression<Int64>("chunkId")
+    private let chunksFramesIndex = Expression<Int64>("chunksFramesIndex")
     private let timestamp = Expression<Date>("timestamp")
     private let filePath = Expression<String>("filePath")
     private let activeApplicationName = Expression<String?>("activeApplicationName")
@@ -43,6 +45,7 @@ class DatabaseManager {
     private var currentChunkId: Int64 = 0 // Initialize with a default value
     private var lastFrameId: Int64 = 0
     private var currentFrameOffset: Int64 = 0
+    private var lastChunksFramesIndex: Int64 = 0
     
     init() {
         if let savedir = RemFileManager.shared.getSaveDir() {
@@ -54,6 +57,7 @@ class DatabaseManager {
         createTables()
         currentChunkId = getCurrentChunkId()
         lastFrameId = getLastFrameId()
+        lastChunksFramesIndex = getLastChunksFramesIndex()
     }
     
     func purge() {
@@ -116,6 +120,26 @@ class DatabaseManager {
         
         // Text search
         try! db.run(allText.create(.FTS4(config), ifNotExists: true))
+        
+        // Create chunksFramesView (ensures all frames have associated chunks)
+        let viewSQL = """
+        CREATE VIEW IF NOT EXISTS chunks_frames_view AS
+        SELECT
+            ROW_NUMBER() OVER (ORDER BY vc.id, f.id) as chunksFramesIndex,
+            vc.id as chunkId,
+            vc.filePath,
+            f.id as frameId,
+            f.timestamp,
+            f.activeApplicationName,
+            f.offsetIndex
+        FROM
+            video_chunks vc
+        JOIN
+            frames f ON vc.id = f.chunkId
+        ORDER BY
+            vc.id, f.id;
+        """
+        try! db.run(viewSQL)
     }
     
     private func createIndices() {
@@ -124,6 +148,8 @@ class DatabaseManager {
             try db.run(frames.createIndex(chunkId, id, unique: false, ifNotExists: true))
             try db.run(frames.createIndex(timestamp, ifNotExists: true))
             
+            // For speeding up chunksFramesView
+            try db.run(videoChunks.createIndex(id, unique: true, ifNotExists: true))
             // Additional indices can be added here as needed
         } catch {
             print("Failed to create indices: \(error)")
@@ -132,8 +158,8 @@ class DatabaseManager {
     
     private func getCurrentChunkId() -> Int64 {
         do {
-            if let lastChunk = try db.pluck(videoChunks.order(id.desc)) {
-                return lastChunk[id] + 1
+            if let lastFrame = try db.pluck(frames.order(id.desc)) {
+                return lastFrame[chunkId] + 1
             }
         } catch {
             print("Error fetching last chunk ID: \(error)")
@@ -147,17 +173,29 @@ class DatabaseManager {
                 return lastFrame[id]
             }
         } catch {
-            print("Error fetching last chunk ID: \(error)")
+            print("Error fetching last frame ID: \(error)")
+        }
+        return 0
+    }
+    
+    private func getLastChunksFramesIndex() -> Int64 {
+        do {
+            if let lastFrame = try db.pluck(chunksFramesView.order(chunksFramesIndex.desc)) {
+                return lastFrame[chunksFramesIndex]
+            }
+        } catch {
+            print("Error fetching last chunks frames Index: \(error)")
         }
         return 0
     }
     
     // Insert a new video chunk and return its ID
     func startNewVideoChunk(filePath: String) -> Int64 {
-        let insert = videoChunks.insert(self.filePath <- filePath)
+        let insert = videoChunks.insert(self.id <- currentChunkId, self.filePath <- filePath)
         let id = try! db.run(insert)
         currentChunkId = id + 1
         currentFrameOffset = 0
+        lastChunksFramesIndex = getLastChunksFramesIndex()
         return id
     }
     
@@ -205,6 +243,19 @@ class DatabaseManager {
     func getFrame(forIndex index: Int64) -> (offsetIndex: Int64, filePath: String)? {
         do {
             let query = frames.join(videoChunks, on: chunkId == videoChunks[id]).filter(frames[id] == index).limit(1)
+            if let frame = try db.pluck(query) {
+                return (frame[offsetIndex], frame[filePath])
+            }
+        } catch {
+            return nil
+        }
+        
+        return nil
+    }
+    
+    func getFrameByChunksFramesIndex(forIndex index: Int64) -> (offsetIndex: Int64, filePath: String)? {
+        do {
+            let query = chunksFramesView.filter(chunksFramesIndex == index).limit(1)
             if let frame = try db.pluck(query) {
                 return (frame[offsetIndex], frame[filePath])
             }
@@ -281,6 +332,10 @@ class DatabaseManager {
     
     func getMaxFrame() -> Int64 {
         return lastFrameId
+    }
+    
+    func getMaxChunksFramesIndex() -> Int64 {
+        return lastChunksFramesIndex
     }
     
     func getLastAccessibleFrame() -> Int64 {
@@ -382,6 +437,13 @@ class DatabaseManager {
 
     func getImage(index: Int64, maxSize: CGSize? = nil) -> CGImage? {
         guard let frameData = DatabaseManager.shared.getFrame(forIndex: index) else { return nil }
+        
+        let videoURL = URL(fileURLWithPath: frameData.filePath)
+        return extractFrame(from: videoURL, frameOffset: frameData.offsetIndex, maxSize: maxSize)
+    }
+    
+    func getImageByChunksFramesIndex(index: Int64, maxSize: CGSize? = nil) -> CGImage? {
+        guard let frameData = DatabaseManager.shared.getFrameByChunksFramesIndex(forIndex: index) else { return nil }
         
         let videoURL = URL(fileURLWithPath: frameData.filePath)
         return extractFrame(from: videoURL, frameOffset: frameData.offsetIndex, maxSize: maxSize)

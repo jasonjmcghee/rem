@@ -196,7 +196,7 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
             }
             let menu = NSMenu()
             let recordingTitle = self.isCapturing == .recording ? "Stop Remembering" : "Start Remembering"
-            let recordingSelector = self.isCapturing == .recording ? #selector(self.disableRecording) : #selector(self.enableRecording)
+            let recordingSelector = self.isCapturing == .recording ? #selector(self.userDisableRecording) : #selector(self.enableRecording)
             menu.addItem(NSMenuItem(title: recordingTitle, action: recordingSelector, keyEquivalent: ""))
             menu.addItem(NSMenuItem(title: "Toggle Timeline", action: #selector(self.toggleTimeline), keyEquivalent: ""))
             menu.addItem(NSMenuItem(title: "Search", action: #selector(self.showSearchView), keyEquivalent: ""))
@@ -225,7 +225,7 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
         if isTimelineOpen() {
             closeTimelineView()
         } else {
-            let frame = DatabaseManager.shared.getMaxFrame()
+            let frame = DatabaseManager.shared.getMaxChunksFramesIndex()
             showTimelineView(with: frame)
         }
     }
@@ -278,7 +278,7 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
         
         if event.scrollingDeltaY < 0 && !isTimelineOpen() { // Check if scroll up
             DispatchQueue.main.async { [weak self] in
-                self?.showTimelineView(with: DatabaseManager.shared.getMaxFrame())
+                self?.showTimelineView(with: DatabaseManager.shared.getMaxChunksFramesIndex())
             }
         }
     }
@@ -483,8 +483,6 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
         if let savedir = RemFileManager.shared.getSaveDir() {
             let outputPath = savedir.appendingPathComponent("output-\(Date().timeIntervalSince1970).mp4").path
             
-            let _ = DatabaseManager.shared.startNewVideoChunk(filePath: outputPath)
-            
             // Setup the FFmpeg process for the chunk
             let ffmpegProcess = Process()
             let bundleURL = Bundle.main.bundleURL
@@ -531,6 +529,17 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
 
             // Close the pipe and handle the process completion
             ffmpegInputPipe.fileHandleForWriting.closeFile()
+            ffmpegProcess.waitUntilExit()
+            
+            // Check if FFmpeg process completed successfully
+            if ffmpegProcess.terminationStatus == 0 {
+                // Start new video chunk in database only if FFmpeg succeeds
+                let _ = DatabaseManager.shared.startNewVideoChunk(filePath: outputPath)
+                logger.info("Video successfully saved and registered.")
+            } else {
+                logger.error("FFmpeg failed to process video chunk.")
+            }
+
             
             // Read FFmpeg's output and error
             let outputData = ffmpegOutputPipe.fileHandleForReading.readDataToEndOfFile()
@@ -548,6 +557,9 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
     }
 
     @objc func enableRecording() {
+        if isCapturing == .recording {
+            return
+        }
         isCapturing = .recording
 
         Task {
@@ -558,6 +570,12 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
     @objc func pauseRecording() {
         isCapturing = .paused
         logger.info("Screen capture paused")
+    }
+    
+    @objc func userDisableRecording() {
+        wasRecordingBeforeSearchView = false
+        wasRecordingBeforeTimelineView = false
+        disableRecording()
     }
     
     @objc func disableRecording() {
@@ -645,8 +663,9 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
     }
     
     @objc func showTimelineView(with index: Int64) {
-        wasRecordingBeforeTimelineView = (isCapturing == .recording)
+        wasRecordingBeforeTimelineView = (isCapturing == .recording) || wasRecordingBeforeSearchView // handle going from search to TL
         disableRecording()
+        wasRecordingBeforeSearchView = false
         closeSearchView()
         if timelineViewWindow == nil {
             let screenRect = NSScreen.main?.frame ?? NSRect.zero
@@ -710,8 +729,9 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
     }
     
     @objc func showSearchView() {
-        wasRecordingBeforeSearchView = (isCapturing == .recording)
+        wasRecordingBeforeSearchView = (isCapturing == .recording) || wasRecordingBeforeTimelineView
         disableRecording()
+        wasRecordingBeforeTimelineView = false
         closeTimelineView()
         // Ensure that the search view window is created and shown
         if searchViewWindow == nil {
