@@ -362,10 +362,6 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
                     }
                 }
     
-//                if let screenID = NSScreen.main?.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber {
-//                    displayID = CGDirectDisplayID(screenID.uint32Value)
-//                    logger.debug("Display ID: \(displayID ?? 999)")
-//                }
                 guard displayID != nil else { return }
                 
                 guard let display = shareableContent.displays.first(where: { $0.displayID == displayID }) else { return }
