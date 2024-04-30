@@ -253,6 +253,19 @@ class DatabaseManager {
         return nil
     }
     
+    func getChunksFramesIndex(frameId index: Int64) -> Int64? {
+        do {
+            let query = chunksFramesView.filter(frameId == index).limit(1)
+            if let frame = try db.pluck(query) {
+                return frame[chunksFramesIndex]
+            }
+        } catch {
+            return nil
+        }
+        
+        return nil
+    }
+    
     func getFrameByChunksFramesIndex(forIndex index: Int64) -> (offsetIndex: Int64, filePath: String)? {
         do {
             let query = chunksFramesView.filter(chunksFramesIndex == index).limit(1)

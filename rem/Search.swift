@@ -424,7 +424,7 @@ struct ResultsView: View {
                 switch imageResult {
                 case .success(let requestedTime, let image, _):
                     if count < results.count {
-                        let offset = Int64(requestedTime.seconds * fps)
+                        let offset = Int64((requestedTime.seconds * Double(fps)).rounded())
                         if let id = offsetToId[offset] {
                             if let dataIndex = frameIdIndexLookup[id] {
                                 results[dataIndex].updateThumbnail(NSImage(cgImage: image, size: NSZeroSize))
