@@ -89,7 +89,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     private var lastImageData: Data? = nil
     private var lastActiveApplication: String? = nil
-    private var lastActiveDisplayID: UInt32? = nil
+    private var lastDisplayID: UInt32? = nil
     
     
     private var imageResizer = ImageResizer(
@@ -390,10 +390,10 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
                 }
                 
                 // Might as well only check if the applications are the same, otherwise obviously different
-                if activeApplicationName != lastActiveApplication || lastActiveDisplayID != displayID || displayImageChangedFromLast(imageData: imageData) {
+                if activeApplicationName != lastActiveApplication || lastDisplayID != displayID || displayImageChangedFromLast(imageData: imageData) {
                     lastImageData = imageData;
                     lastActiveApplication = activeApplicationName;
-                    lastActiveDisplayID = displayID;
+                    lastDisplayID = displayID;
                     
                     let frameId = DatabaseManager.shared.insertFrame(activeApplicationName: activeApplicationName)
                     
