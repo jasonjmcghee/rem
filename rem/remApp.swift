@@ -89,6 +89,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     private var lastImageData: Data? = nil
     private var lastActiveApplication: String? = nil
+    private var lastActiveDisplayID: UInt32? = nil
+    
     
     private var imageResizer = ImageResizer(
         targetWidth: Int(NSScreen.main!.frame.width * NSScreen.main!.backingScaleFactor),
@@ -352,10 +354,18 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
                 guard isCapturing == .recording else { return }
                 
                 var displayID: CGDirectDisplayID? = nil
-                if let screenID = NSScreen.main?.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber {
-                    displayID = CGDirectDisplayID(screenID.uint32Value)
-                    logger.debug("Display ID: \(displayID ?? 999)")
+                let mouseLocation = NSEvent.mouseLocation
+                if let screen = NSScreen.screens.first(where: {$0.frame.contains(mouseLocation)}) {
+                    if let screenID = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber {
+                        displayID = CGDirectDisplayID(screenID.uint32Value)
+                        logger.debug("Active Screen Display ID: \(displayID ?? 999)")
+                    }
                 }
+    
+//                if let screenID = NSScreen.main?.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber {
+//                    displayID = CGDirectDisplayID(screenID.uint32Value)
+//                    logger.debug("Display ID: \(displayID ?? 999)")
+//                }
                 guard displayID != nil else { return }
                 
                 guard let display = shareableContent.displays.first(where: { $0.displayID == displayID }) else { return }
@@ -380,13 +390,14 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
                 }
                 
                 // Might as well only check if the applications are the same, otherwise obviously different
-                if activeApplicationName != lastActiveApplication || displayImageChangedFromLast(imageData: imageData) {
+                if activeApplicationName != lastActiveApplication || lastActiveDisplayID != displayID || displayImageChangedFromLast(imageData: imageData) {
                     lastImageData = imageData;
                     lastActiveApplication = activeApplicationName;
+                    lastActiveDisplayID = displayID;
                     
                     let frameId = DatabaseManager.shared.insertFrame(activeApplicationName: activeApplicationName)
                     
-                    if settingsManager.settings.onlyOCRFrontmostWindow {
+                    if settingsManager.settings.onlyOCRFrontmostWindow && displayID == 1 {
                         // default: User wants to perform OCR on only active window.
                         
                         // We need to determine the scale factor for cropping.  CGImage is
