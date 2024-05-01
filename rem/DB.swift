@@ -262,6 +262,22 @@ class DatabaseManager {
         try! db.run(insert)
     }
     
+    func insertTextsForFrames(entries: [(frameId: Int64, text: String, x: Double, y: Double, w: Double, h: Double)]){
+        try! db.transaction {
+            for entry in entries {
+                let insert = framesText.insert(
+                    self.frameId <- entry.frameId,
+                    self.text <- entry.text,
+                    self.x <- entry.x,
+                    self.y <- entry.y,
+                    self.w <- entry.w,
+                    self.h <- entry.h
+                )
+                try db.run(insert)
+            }
+        }
+    }
+    
     func insertAllTextForFrame(frameId: Int64, text: String) {
         let insert = allText.insert(self.frameId <- frameId, self.text <- text)
         try! db.run(insert)

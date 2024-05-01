@@ -642,19 +642,20 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
                     }
                     
                     let candidateConfidenceThreshold: Float = 0.35
-                    var texts = [String]()
+                    var textEntries = [(frameId: Int64, text: String, x: Double, y: Double, w: Double, h: Double)]()
                     for observation in observations {
                         if let candidate = observation.topCandidates(1).first, candidate.confidence > candidateConfidenceThreshold {
                             let string = candidate.string
                             let stringRange = string.startIndex..<string.endIndex
                             let box = try? candidate.boundingBox(for: stringRange)
                             let boundingBox = box?.boundingBox ?? .zero
-                            DatabaseManager.shared.insertTextForFrame(frameId: frameId, text: string, x: boundingBox.minX, y: boundingBox.minY,
-                                                                      w: boundingBox.width, h: boundingBox.height)
-                            texts.append(string)
+                            textEntries.append((frameId: frameId, text: string, x: boundingBox.minX, y: boundingBox.minY,
+                                                w: boundingBox.width, h: boundingBox.height))
                         }
                     }
+                    DatabaseManager.shared.insertTextsForFrames(entries: textEntries)
                     
+                    var texts = textEntries.map { $0.text }
                     if self.settingsManager.settings.saveEverythingCopiedToClipboard {
                         let newClipboardText = ClipboardManager.shared.getClipboardIfChanged() ?? ""
                         texts.append(newClipboardText)
