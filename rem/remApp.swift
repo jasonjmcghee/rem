@@ -640,20 +640,27 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
                         print("OCR error: \(error?.localizedDescription ?? "Unknown error")")
                         return
                     }
-
-                    let topK = 1
-                    let recognizedStrings = observations.compactMap { observation in
-                        observation.topCandidates(topK).first?.string
-                        // observation.topCandidates(1).first?.boundingBox(for: str.startIndex..<str.endIndex)
-                    }.joined(separator: "\n")
                     
-                    var texts = [recognizedStrings]
+                    let candidateConfidenceThreshold: Float = 0.35
+                    var texts = [String]()
+                    for observation in observations {
+                        if let candidate = observation.topCandidates(1).first, candidate.confidence > candidateConfidenceThreshold {
+                            let string = candidate.string
+                            let stringRange = string.startIndex..<string.endIndex
+                            let box = try? candidate.boundingBox(for: stringRange)
+                            let boundingBox = box?.boundingBox ?? .zero
+                            DatabaseManager.shared.insertTextForFrame(frameId: frameId, text: string, x: boundingBox.minX, y: boundingBox.minY,
+                                                                      w: boundingBox.width, h: boundingBox.height)
+                            texts.append(string)
+                        }
+                    }
+                    
                     if self.settingsManager.settings.saveEverythingCopiedToClipboard {
                         let newClipboardText = ClipboardManager.shared.getClipboardIfChanged() ?? ""
                         texts.append(newClipboardText)
                     }
                     let cleanText = TextMerger.shared.mergeTexts(texts: texts)
-                    DatabaseManager.shared.insertTextForFrame(frameId: frameId, text: cleanText)
+                    DatabaseManager.shared.insertAllTextForFrame(frameId: frameId, text: cleanText)
                 }
                 
                 if self.settingsManager.settings.fastOCR {

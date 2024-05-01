@@ -27,6 +27,7 @@ class DatabaseManager {
     private let videoChunks = Table("video_chunks")
     private let frames = Table("frames")
     private let uniqueAppNames = Table("unique_application_names")
+    private let framesText = Table("frames_text")
 
     let allText = VirtualTable("allText")
     let chunksFramesView = View("chunks_frames_view")
@@ -38,6 +39,10 @@ class DatabaseManager {
     private let timestamp = Expression<Date>("timestamp")
     private let filePath = Expression<String>("filePath")
     private let activeApplicationName = Expression<String?>("activeApplicationName")
+    private let x = Expression<Double>("x")
+    private let y = Expression<Double>("y")
+    private let w = Expression<Double>("w")
+    private let h = Expression<Double>("h")
     
     let frameId = Expression<Int64>("frameId")
     let text = Expression<String>("text")
@@ -66,6 +71,8 @@ class DatabaseManager {
             try db.run(frames.drop(ifExists: true))
             try db.run(allText.drop(ifExists: true))
             try db.run(uniqueAppNames.drop(ifExists: true))
+            try db.run(chunksFramesView.drop(ifExists: true))
+            try db.run(framesText.drop(ifExists: true))
         } catch {
             print("Failed to delete tables")
         }
@@ -94,6 +101,17 @@ class DatabaseManager {
             t.column(id, primaryKey: .autoincrement)
             t.column(activeApplicationName, unique: true)
         })
+        
+        try! db.run(framesText.create(ifNotExists: true) { t in
+            t.column(id, primaryKey: .autoincrement)
+            t.column(frameId)
+            t.column(text)
+            t.column(x)
+            t.column(y)
+            t.column(w)
+            t.column(h)
+        })
+        
         // Seed the `uniqueAppNames` table if empty
         do {
             if try db.scalar(uniqueAppNames.count) == 0 {
@@ -150,6 +168,9 @@ class DatabaseManager {
             
             // For speeding up chunksFramesView
             try db.run(videoChunks.createIndex(id, unique: true, ifNotExists: true))
+            
+            // Accessing framesText by frameId
+            try db.run(framesText.createIndex(frameId, unique: false, ifNotExists: true))
             // Additional indices can be added here as needed
         } catch {
             print("Failed to create indices: \(error)")
@@ -235,7 +256,13 @@ class DatabaseManager {
         }
     }
     
-    func insertTextForFrame(frameId: Int64, text: String) {
+    func insertTextForFrame(frameId: Int64, text: String, x: Double, y: Double, w: Double, h: Double){
+        let insert = framesText.insert(self.frameId <- frameId, self.text <- text, self.x <- x, self.y <- y,
+                                       self.w <- w, self.h <- h)
+        try! db.run(insert)
+    }
+    
+    func insertAllTextForFrame(frameId: Int64, text: String) {
         let insert = allText.insert(self.frameId <- frameId, self.text <- text)
         try! db.run(insert)
     }
