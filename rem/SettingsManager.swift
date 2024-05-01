@@ -16,6 +16,7 @@ struct AppSettings: Codable {
     var onlyOCRFrontmostWindow: Bool = true
     var fastOCR: Bool = true
     var startRememberingOnStartup: Bool = false
+    var recordWindowWithMouse: Bool = false
 }
 
 // The settings manager handles saving and loading the settings
@@ -64,6 +65,8 @@ struct SettingsView: View {
                     .onChange(of: settingsManager.settings.onlyOCRFrontmostWindow) { _ in settingsManager.saveSettings() }
                 Toggle("Use faster, but lower accuracy OCR (more efficient)", isOn: $settingsManager.settings.fastOCR)
                     .onChange(of: settingsManager.settings.fastOCR) { _ in settingsManager.saveSettings() }
+                Toggle("Always record window with mouse", isOn: $settingsManager.settings.recordWindowWithMouse)
+                    .onChange(of: settingsManager.settings.recordWindowWithMouse) { _ in settingsManager.saveSettings() }
             }
         }
         .padding()

@@ -351,20 +351,36 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
     private func scheduleScreenshot(shareableContent: SCShareableContent) {
         Task {
             do {
-                guard isCapturing == .recording else { return }
+                guard isCapturing == .recording else { 
+                    logger.debug("Stopped Recording")
+                    return }
                 
                 var displayID: CGDirectDisplayID? = nil
-                let mouseLocation = NSEvent.mouseLocation
-                if let screen = NSScreen.screens.first(where: {$0.frame.contains(mouseLocation)}) {
-                    if let screenID = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber {
-                        displayID = CGDirectDisplayID(screenID.uint32Value)
-                        logger.debug("Active Screen Display ID: \(displayID ?? 999)")
+                if settingsManager.settings.recordWindowWithMouse {
+                    let mouseLocation = NSEvent.mouseLocation
+                    if let screen = NSScreen.screens.first(where: {$0.frame.contains(mouseLocation)}) {
+                        if let screenID = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber {
+                            displayID = CGDirectDisplayID(screenID.uint32Value)
+                            logger.debug("Mouse Active Display ID: \(displayID ?? 999)")
+                        }
                     }
                 }
-    
-                guard displayID != nil else { return }
                 
-                guard let display = shareableContent.displays.first(where: { $0.displayID == displayID }) else { return }
+                if displayID == nil {
+                    if let screenID = NSScreen.main?.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber {
+                        displayID = CGDirectDisplayID(screenID.uint32Value)
+                        logger.debug("Active Display ID: \(displayID ?? 999)")
+                    }
+                }
+
+                guard displayID != nil else { 
+                    logger.debug("DisplayID is nil")
+                    return }
+                
+                guard let display = shareableContent.displays.first(where: { $0.displayID == displayID }) else { 
+                    logger.debug("Display could not be retrieved")
+                    return }
+                
                 let activeApplicationName = NSWorkspace.shared.frontmostApplication?.localizedName
                 
                 logger.debug("Active Application: \(activeApplicationName ?? "<undefined>")")
@@ -393,7 +409,7 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
                     
                     let frameId = DatabaseManager.shared.insertFrame(activeApplicationName: activeApplicationName)
                     
-                    if settingsManager.settings.onlyOCRFrontmostWindow && displayID == 1 {
+                    if settingsManager.settings.onlyOCRFrontmostWindow && displayID == CGMainDisplayID() {
                         // default: User wants to perform OCR on only active window.
                         
                         // We need to determine the scale factor for cropping.  CGImage is
