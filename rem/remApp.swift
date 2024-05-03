@@ -89,6 +89,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     private var lastImageData: Data? = nil
     private var lastActiveApplication: String? = nil
+    private var lastDisplayID: UInt32? = nil
+    
     
     private var imageResizer = ImageResizer(
         targetWidth: Int(NSScreen.main!.frame.width * NSScreen.main!.backingScaleFactor),
@@ -349,16 +351,36 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
     private func scheduleScreenshot(shareableContent: SCShareableContent) {
         Task {
             do {
-                guard isCapturing == .recording else { return }
+                guard isCapturing == .recording else { 
+                    logger.debug("Stopped Recording")
+                    return }
                 
                 var displayID: CGDirectDisplayID? = nil
-                if let screenID = NSScreen.main?.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber {
-                    displayID = CGDirectDisplayID(screenID.uint32Value)
-                    logger.debug("Display ID: \(displayID ?? 999)")
+                if settingsManager.settings.recordWindowWithMouse {
+                    let mouseLocation = NSEvent.mouseLocation
+                    if let screen = NSScreen.screens.first(where: {$0.frame.contains(mouseLocation)}) {
+                        if let screenID = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber {
+                            displayID = CGDirectDisplayID(screenID.uint32Value)
+                            logger.debug("Mouse Active Display ID: \(displayID ?? 999)")
+                        }
+                    }
                 }
-                guard displayID != nil else { return }
                 
-                guard let display = shareableContent.displays.first(where: { $0.displayID == displayID }) else { return }
+                if displayID == nil {
+                    if let screenID = NSScreen.main?.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber {
+                        displayID = CGDirectDisplayID(screenID.uint32Value)
+                        logger.debug("Active Display ID: \(displayID ?? 999)")
+                    }
+                }
+
+                guard displayID != nil else { 
+                    logger.debug("DisplayID is nil")
+                    return }
+                
+                guard let display = shareableContent.displays.first(where: { $0.displayID == displayID }) else { 
+                    logger.debug("Display could not be retrieved")
+                    return }
+                
                 let activeApplicationName = NSWorkspace.shared.frontmostApplication?.localizedName
                 
                 logger.debug("Active Application: \(activeApplicationName ?? "<undefined>")")
@@ -380,13 +402,14 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
                 }
                 
                 // Might as well only check if the applications are the same, otherwise obviously different
-                if activeApplicationName != lastActiveApplication || displayImageChangedFromLast(imageData: imageData) {
+                if activeApplicationName != lastActiveApplication || lastDisplayID != displayID || displayImageChangedFromLast(imageData: imageData) {
                     lastImageData = imageData;
                     lastActiveApplication = activeApplicationName;
+                    lastDisplayID = displayID;
                     
                     let frameId = DatabaseManager.shared.insertFrame(activeApplicationName: activeApplicationName)
                     
-                    if settingsManager.settings.onlyOCRFrontmostWindow {
+                    if settingsManager.settings.onlyOCRFrontmostWindow && displayID == CGMainDisplayID() {
                         // default: User wants to perform OCR on only active window.
                         
                         // We need to determine the scale factor for cropping.  CGImage is
@@ -617,20 +640,28 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
                         print("OCR error: \(error?.localizedDescription ?? "Unknown error")")
                         return
                     }
-
-                    let topK = 1
-                    let recognizedStrings = observations.compactMap { observation in
-                        observation.topCandidates(topK).first?.string
-                        // observation.topCandidates(1).first?.boundingBox(for: str.startIndex..<str.endIndex)
-                    }.joined(separator: "\n")
                     
-                    var texts = [recognizedStrings]
+                    let candidateConfidenceThreshold: Float = 0.35
+                    var textEntries = [(frameId: Int64, text: String, x: Double, y: Double, w: Double, h: Double)]()
+                    for observation in observations {
+                        if let candidate = observation.topCandidates(1).first, candidate.confidence > candidateConfidenceThreshold {
+                            let string = candidate.string
+                            let stringRange = string.startIndex..<string.endIndex
+                            let box = try? candidate.boundingBox(for: stringRange)
+                            let boundingBox = box?.boundingBox ?? .zero
+                            textEntries.append((frameId: frameId, text: string, x: boundingBox.minX, y: boundingBox.minY,
+                                                w: boundingBox.width, h: boundingBox.height))
+                        }
+                    }
+                    DatabaseManager.shared.insertTextsForFrames(entries: textEntries)
+                    
+                    var texts = textEntries.map { $0.text }
                     if self.settingsManager.settings.saveEverythingCopiedToClipboard {
                         let newClipboardText = ClipboardManager.shared.getClipboardIfChanged() ?? ""
                         texts.append(newClipboardText)
                     }
                     let cleanText = TextMerger.shared.mergeTexts(texts: texts)
-                    DatabaseManager.shared.insertTextForFrame(frameId: frameId, text: cleanText)
+                    DatabaseManager.shared.insertAllTextForFrame(frameId: frameId, text: cleanText)
                 }
                 
                 if self.settingsManager.settings.fastOCR {
