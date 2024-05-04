@@ -59,6 +59,9 @@ class DatabaseManager {
             db = try! Connection("db.sqlite3")
         }
         
+        // 2 second busy timeout
+        db.busyTimeout = 2000
+        
         createTables()
         currentChunkId = getCurrentChunkId()
         lastFrameId = getLastFrameId()
