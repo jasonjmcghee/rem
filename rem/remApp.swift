@@ -355,6 +355,9 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
             screenshotQueue.asyncAfter(deadline: .now() + 2) { [weak self] in
                 self?.scheduleScreenshot(shareableContent: shareableContent)
             }
+        } else {
+            stopScreenCapture()
+            screenshotRetries = 0
         }
     }
 
