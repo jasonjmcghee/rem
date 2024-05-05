@@ -356,7 +356,7 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
                 self?.scheduleScreenshot(shareableContent: shareableContent)
             }
         } else {
-            stopScreenCapture()
+            disableRecording()
             screenshotRetries = 0
         }
     }
