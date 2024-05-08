@@ -90,6 +90,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var lastImageData: Data? = nil
     private var lastActiveApplication: String? = nil
     private var lastDisplayID: UInt32? = nil
+    private var screenshotRetries: Int = 0
     
     
     private var imageResizer = ImageResizer(
@@ -347,11 +348,23 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
         }
         return false
     }
+    
+    private func retryScreenshot(shareableContent: SCShareableContent) {
+        if screenshotRetries < 3 {
+            screenshotRetries += 1
+            screenshotQueue.asyncAfter(deadline: .now() + 2) { [weak self] in
+                self?.scheduleScreenshot(shareableContent: shareableContent)
+            }
+        } else {
+            disableRecording()
+            screenshotRetries = 0
+        }
+    }
 
     private func scheduleScreenshot(shareableContent: SCShareableContent) {
         Task {
             do {
-                guard isCapturing == .recording else { 
+                guard isCapturing == .recording else {
                     logger.debug("Stopped Recording")
                     return }
                 
@@ -372,14 +385,18 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
                         logger.debug("Active Display ID: \(displayID ?? 999)")
                     }
                 }
-
-                guard displayID != nil else { 
-                    logger.debug("DisplayID is nil")
-                    return }
                 
-                guard let display = shareableContent.displays.first(where: { $0.displayID == displayID }) else { 
+                guard displayID != nil else {
+                    logger.debug("DisplayID is nil")
+                    retryScreenshot(shareableContent: shareableContent)
+                    return
+                }
+                
+                guard let display = shareableContent.displays.first(where: { $0.displayID == displayID }) else {
                     logger.debug("Display could not be retrieved")
-                    return }
+                    retryScreenshot(shareableContent: shareableContent)
+                    return
+                }
                 
                 let activeApplicationName = NSWorkspace.shared.frontmostApplication?.localizedName
                 
@@ -435,6 +452,7 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
                 logger.error("Error taking screenshot: \(error)")
             }
             
+            screenshotRetries = 0
             screenshotQueue.asyncAfter(deadline: .now() + 2) { [weak self] in
                 self?.scheduleScreenshot(shareableContent: shareableContent)
             }

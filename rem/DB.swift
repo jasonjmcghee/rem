@@ -59,6 +59,9 @@ class DatabaseManager {
             db = try! Connection("db.sqlite3")
         }
         
+        try! db.run("PRAGMA journal_mode = WAL")
+        try! db.run("PRAGMA synchronous = NORMAL")
+        
         createTables()
         currentChunkId = getCurrentChunkId()
         lastFrameId = getLastFrameId()
