@@ -324,8 +324,8 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
             let shareableContent = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: false)
 
             setupMenu()
-            screenshotQueue.async { [weak self] in
-                self?.scheduleScreenshot(shareableContent: shareableContent)
+            Task {
+                await startScreenCapture()
             }
         } catch {
             logger.error("Error starting screen capture: \(error.localizedDescription)")
