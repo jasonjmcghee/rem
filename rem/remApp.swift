@@ -353,6 +353,7 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
         if screenCaptureRetries < 3 {
             screenCaptureRetries += 1
             Task {
+                try await Task.sleep(nanoseconds: 2_000_000_000)
                 await startScreenCapture()
             }
         } else {
