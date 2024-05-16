@@ -90,7 +90,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var lastImageData: Data? = nil
     private var lastActiveApplication: String? = nil
     private var lastDisplayID: UInt32? = nil
-    private var screenshotRetries: Int = 0
+    private var screenCaptureRetries: Int = 0
     
     
     private var imageResizer = ImageResizer(
@@ -349,15 +349,16 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
         return false
     }
     
-    private func retryScreenshot(shareableContent: SCShareableContent) {
-        if screenshotRetries < 3 {
-            screenshotRetries += 1
-            screenshotQueue.asyncAfter(deadline: .now() + 2) { [weak self] in
-                self?.scheduleScreenshot(shareableContent: shareableContent)
+    private func retryScreenCapture() {
+        if screenCaptureRetries < 3 {
+            screenCaptureRetries += 1
+            Task {
+                try await Task.sleep(nanoseconds: 2_000_000_000)
+                await startScreenCapture()
             }
         } else {
             disableRecording()
-            screenshotRetries = 0
+            screenCaptureRetries = 0
         }
     }
 
@@ -388,13 +389,13 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
                 
                 guard displayID != nil else {
                     logger.debug("DisplayID is nil")
-                    retryScreenshot(shareableContent: shareableContent)
+                    retryScreenCapture()
                     return
                 }
                 
                 guard let display = shareableContent.displays.first(where: { $0.displayID == displayID }) else {
                     logger.debug("Display could not be retrieved")
-                    retryScreenshot(shareableContent: shareableContent)
+                    retryScreenCapture()
                     return
                 }
                 
@@ -452,7 +453,7 @@ func drawStatusBarIcon(rect: CGRect) -> Bool {
                 logger.error("Error taking screenshot: \(error)")
             }
             
-            screenshotRetries = 0
+            screenCaptureRetries = 0
             screenshotQueue.asyncAfter(deadline: .now() + 2) { [weak self] in
                 self?.scheduleScreenshot(shareableContent: shareableContent)
             }
